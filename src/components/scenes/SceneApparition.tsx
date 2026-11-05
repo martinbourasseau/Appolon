@@ -1,0 +1,86 @@
+import Image from "next/image";
+import { ProvisoireTag } from "@/components/scene-kit/Provisoire";
+
+/**
+ * SCÈNE I — L'apparition.
+ *
+ * Composition en plans, du fond vers l'avant :
+ *   ciel/paysage → lumière → soleil → nuage lointain → GRAND TITRE
+ *   → statue d'Apollon → nuage proche → texte.
+ * Le titre passe derrière la statue : c'est elle qui « tient » l'écran.
+ *
+ * Défilement (Motion.tsx, data-hero-*) : la scène reste fixée ~2 écrans ;
+ * le soleil monte et tourne, la lumière se réchauffe, les nuages dérivent
+ * à des vitesses différentes, la caméra avance légèrement vers la statue.
+ *
+ * Bras : un point d'ancrage est prévu (data-hero-arm) mais aucun mouvement
+ * n'est simulé tant que les calques séparés ne sont pas fournis.
+ *
+ * ⚠ Toutes les images de cette scène sont PROVISOIRES.
+ */
+export function SceneApparition() {
+  return (
+    <section id="apparition" className="scene scene--apparition" data-scene data-hero aria-labelledby="hero-title">
+      <div className="hero__stage">
+        <div className="hero__sky" data-hero-sky>
+          <Image
+            src="/provisoire/paysage.webp"
+            alt=""
+            fill
+            sizes="100vw"
+            loading="eager"
+            fetchPriority="high"
+            className="hero__sky-img"
+          />
+        </div>
+        <div className="hero__light" data-hero-light aria-hidden="true" />
+
+        <Image src="/provisoire/soleil.webp" alt="" width={630} height={723} className="hero__sun" data-hero-sun />
+        <Image src="/provisoire/nuage-peint.webp" alt="" width={640} height={344} className="hero__cloud hero__cloud--far" data-hero-cloud="far" />
+
+        <h1 id="hero-title" className="hero__title" data-hero-title>
+          <span className="hero__kicker">Création de sites web</span>
+          <span className="hero__word" aria-label="Apollon">
+            {Array.from("APOLLON").map((ch, i) => (
+              <span key={i} className="ch" aria-hidden="true">
+                {ch}
+              </span>
+            ))}
+          </span>
+        </h1>
+
+        <div className="hero__statue" data-hero-statue>
+          <Image
+            src="/provisoire/apollon-statue.webp"
+            alt="Statue d'Apollon couronné de laurier, appuyé sur sa lyre"
+            width={678}
+            height={1350}
+            sizes="(max-width: 768px) 70vw, 34vw"
+            loading="eager"
+            className="hero__statue-img"
+          />
+          {/* Point d'ancrage du bras : épaule gauche de la statue (à droite à l'écran) */}
+          <span className="hero__arm-anchor" data-hero-arm aria-hidden="true" />
+        </div>
+
+        <Image src="/provisoire/nuage-grave.webp" alt="" width={579} height={251} className="hero__cloud hero__cloud--near" data-hero-cloud="near" />
+
+        <div className="hero__copy" data-hero-copy>
+          <p className="hero__line">
+            La création web, comme <em>un art</em> et comme <em>une ingénierie</em>.
+          </p>
+        </div>
+
+        <p className="hero__cue" aria-hidden="true">
+          <span>Défiler</span>
+        </p>
+
+        <div className="hero__notes">
+          <ProvisoireTag note="Paysage : 736 px, signé, droits à vérifier — remplacer par un paysage HD en 3 couches" />
+          <ProvisoireTag note="Statue : version du site du groupe, basse définition — bras non animé" />
+          <ProvisoireTag note="Soleil et nuages : détourage automatique sur fond blanc" />
+        </div>
+      </div>
+    </section>
+  );
+}
