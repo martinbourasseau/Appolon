@@ -99,7 +99,11 @@ export function ApolloIntro() {
       return;
     }
     const octaves = level === "lite" ? 3 : 5;
-    const maxDpr = level === "lite" ? 1.25 : 1.75;
+    // résolution de calcul : réduite pendant l'ouverture (front bruité, coûteux),
+    // pleine ensuite (simples images, netteté maximale)
+    const restDpr = level === "lite" ? 1.25 : 1.75;
+    const introDpr = level === "lite" ? 1 : 1.25;
+    let maxDpr = introDpr;
     back.octaves = front.octaves = octaves;
     root.dataset.intro = "gl";
 
@@ -234,7 +238,13 @@ export function ApolloIntro() {
         window.clearTimeout(timeout);
         for (const L of layers) L.tex = (L.spec.canvas === "back" ? back : front).texture(L.img);
         // 2) ouverture
-        tl = gsap.timeline({ paused: true, onUpdate: apply, onComplete: () => (root.dataset.intro = "done") });
+        tl = gsap.timeline({ paused: true, onUpdate: apply, onComplete: () => {
+            root.dataset.intro = "done";
+            maxDpr = restDpr;
+            measure();
+            draw();
+          },
+        });
         tl.to(loader, { p: 1, duration: 0.35, ease: "power2.out", onUpdate: drawRays }, 0)
           .to(rays, { scale: 1.3, autoAlpha: 0, duration: 2, ease: "power2.inOut" }, 0.2)
           .to(st, { sky: 1, duration: 2.6, ease: "power2.inOut" }, 0.15)
