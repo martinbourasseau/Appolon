@@ -1390,3 +1390,78 @@ p {
     transition: none;
   }
 }
+
+/* ─── OUVERTURE « L'AUBE D'APOLLON » (ApolloIntro) ─────────────
+   pending : posé avant le premier affichage (script de page)
+   gl      : ouverture en cours, couches dessinées par WebGL
+   done    : ouverture terminée, WebGL continue la parallaxe
+   (absent : mouvement réduit / pas de WebGL → scène DOM)          */
+
+.intro-veil,
+.intro-rays,
+.hero__gl {
+  display: none;
+}
+html[data-intro] .intro-veil {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(70% 55% at 50% 22%, #1f2a4a 0%, transparent 70%),
+    linear-gradient(180deg, #0b1126 0%, #151c36 55%, #2a2638 100%);
+}
+html[data-intro] .hero__gl {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hero__gl--back {
+  z-index: 2;
+}
+.hero__gl--front {
+  z-index: 5;
+}
+html[data-intro] .intro-rays {
+  display: block;
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  top: 22%;
+  width: 150vmax;
+  height: 150vmax;
+  translate: -50% -50%;
+  color: var(--or-clair);
+  pointer-events: none;
+}
+/* les couches DOM gardent leur place (mesurée) mais ne s'affichent plus */
+html[data-intro] [data-hero-sky],
+html[data-intro] [data-hero-sun],
+html[data-intro] [data-hero-cloud],
+html[data-intro] .hero__statue-img {
+  visibility: hidden;
+}
+/* éléments révélés par l'ouverture (autoAlpha) */
+html[data-intro="pending"] .hero__word .ch,
+html[data-intro="pending"] .hero__kicker,
+html[data-intro="pending"] .hero__light,
+html[data-intro="pending"] .hero__notes,
+html[data-intro="pending"] .hero__cue,
+html[data-intro="pending"] .hero__arm-anchor,
+html[data-intro="pending"] .header,
+html[data-intro="pending"] .sommaire,
+html[data-intro="pending"] .bandeau-provisoire,
+html[data-intro="gl"] .hero__word .ch,
+html[data-intro="gl"] .hero__kicker,
+html[data-intro="gl"] .hero__light,
+html[data-intro="gl"] .hero__notes,
+html[data-intro="gl"] .hero__cue,
+html[data-intro="gl"] .hero__arm-anchor,
+html[data-intro="gl"] .header,
+html[data-intro="gl"] .sommaire,
+html[data-intro="gl"] .bandeau-provisoire {
+  visibility: hidden;
+}

@@ -4,6 +4,7 @@ import { Sommaire } from "@/components/layout/Sommaire";
 import { BandeauProvisoire, Footer } from "@/components/layout/Footer";
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { Motion } from "@/components/Motion";
+import { ApolloIntro } from "@/components/intro/ApolloIntro";
 import { SceneApparition } from "@/components/scenes/SceneApparition";
 import { SceneConcevoir } from "@/components/scenes/SceneConcevoir";
 import { SceneIngenierie } from "@/components/scenes/SceneIngenierie";
@@ -18,10 +19,14 @@ const byId = (id: string) => {
   return s;
 };
 
+const INTRO_BOOT = `(function(){try{var m=new URLSearchParams(location.search).get("motion");if(m==="reduced")return;if(m!=="full"&&m!=="lite"&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;if(!("WebGL2RenderingContext" in window))return;document.documentElement.dataset.intro="pending";}catch(e){}})();`;
+
 /** La page : un seul récit en sept scènes */
 export default function Page() {
   return (
     <>
+      {/* Avant le premier affichage : prépare l'ouverture, sans attendre React (évite tout flash) */}
+      <script dangerouslySetInnerHTML={{ __html: INTRO_BOOT }} />
       <Header />
       <Sommaire />
       <main id="contenu">
@@ -36,6 +41,7 @@ export default function Page() {
       <Footer />
       <BandeauProvisoire />
       <SmoothScroll />
+      <ApolloIntro />
       <Motion />
     </>
   );

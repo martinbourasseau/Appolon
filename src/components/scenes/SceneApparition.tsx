@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ProvisoireTag } from "@/components/scene-kit/Provisoire";
+import { IntroRays } from "@/components/intro/IntroRays";
 
 /**
  * SCÈNE I — L'apparition.
@@ -22,6 +23,8 @@ export function SceneApparition() {
   return (
     <section id="apparition" className="scene scene--apparition" data-scene data-hero aria-labelledby="hero-title">
       <div className="hero__stage">
+        {/* Ouverture (ApolloIntro) : nuit d'avant l'aube, sous les canvases */}
+        <div className="intro-veil" aria-hidden="true" />
         <div className="hero__sky" data-hero-sky>
           <Image
             src="/provisoire/paysage.webp"
@@ -35,8 +38,8 @@ export function SceneApparition() {
         </div>
         <div className="hero__light" data-hero-light aria-hidden="true" />
 
-        <Image src="/provisoire/soleil.webp" alt="" width={630} height={723} className="hero__sun" data-hero-sun />
-        <Image src="/provisoire/nuage-peint.webp" alt="" width={640} height={344} className="hero__cloud hero__cloud--far" data-hero-cloud="far" />
+        <Image src="/provisoire/soleil.webp" alt="" width={630} height={723} className="hero__sun" data-hero-sun loading="eager" />
+        <Image src="/provisoire/nuage-peint.webp" alt="" width={640} height={344} className="hero__cloud hero__cloud--far" data-hero-cloud="far" loading="eager" />
 
         <h1 id="hero-title" className="hero__title" data-hero-title>
           <span className="hero__kicker">Création de sites web</span>
@@ -63,7 +66,9 @@ export function SceneApparition() {
           <span className="hero__arm-anchor" data-hero-arm aria-hidden="true" />
         </div>
 
-        <Image src="/provisoire/nuage-grave.webp" alt="" width={579} height={251} className="hero__cloud hero__cloud--near" data-hero-cloud="near" />
+        <Image src="/provisoire/nuage-grave.webp" alt="" width={579} height={251} className="hero__cloud hero__cloud--near" data-hero-cloud="near" loading="eager" />
+
+        <IntroRays />
 
         <div className="hero__copy" data-hero-copy>
           <p className="hero__line">

@@ -56,7 +56,8 @@ export function Motion() {
       const hero = document.querySelector<HTMLElement>("[data-hero]");
       if (hero) {
         const q = gsap.utils.selector(hero);
-        gsap
+        // l'entrée est confiée à l'ouverture WebGL (ApolloIntro) quand elle est active
+        if (!root.dataset.intro) gsap
           .timeline({ defaults: { ease: EASE_OUT } })
           .from(q("[data-hero-sky]"), { opacity: 0, scale: 1.18, duration: 2.2, ease: "power2.out" }, 0)
           .from(q("[data-hero-sun]"), { opacity: 0, yPercent: 30, duration: 2.4 }, 0.2)
