@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Scene } from "@/content/scenes";
 import { realisations } from "@/content/realisations";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
+import { SceneDecor } from "@/components/scene-kit/SceneLayer";
 import { Lead } from "@/components/scene-kit/Editorial";
 import { Provisoire } from "@/components/scene-kit/Provisoire";
 
@@ -16,6 +17,7 @@ export function SceneRealisations({ scene }: { scene: Scene }) {
     <section id={scene.id} className="scene scene--aube" data-scene aria-label={scene.nav}>
       <ChapterOpener scene={scene} />
       <div className="scene__body scene__body--flush">
+        <SceneDecor items={scene.decor} />
         {scene.lead ? <Lead text={scene.lead} /> : null}
       </div>
       <div className="gallery" data-gallery>

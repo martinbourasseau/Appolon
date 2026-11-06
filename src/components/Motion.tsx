@@ -103,6 +103,17 @@ export function Motion() {
           .fromTo(q(".opener__title .ch"), { yPercent: 105, opacity: 0 }, { yPercent: 0, opacity: 1, stagger: 0.025, duration: 0.3, ease: EASE_OUT }, 0.32)
           .fromTo(q(".opener__kicker"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.2 }, 0.45)
           .to(lines, { strokeDashoffset: 0, stagger: 0.03, duration: 0.35 }, 0.55);
+
+        // plans découpés : chacun glisse selon sa profondeur, pendant toute l'ouverture
+        const vh = window.innerHeight;
+        op.querySelectorAll<HTMLElement>("[data-layer-depth]").forEach((el) => {
+          const d = parseFloat(el.dataset.layerDepth ?? "0") * k * (desktop ? 1 : 0.6);
+          gsap.fromTo(
+            el,
+            { y: d * vh * 0.55 },
+            { y: -d * vh * 0.55, ease: "none", scrollTrigger: { trigger: op, start: "top bottom", end: "bottom top", scrub: 0.8 } },
+          );
+        });
       });
 
       /* ── APPARITIONS ──────────────────────────────────────────── */
@@ -227,11 +238,19 @@ export function Motion() {
       };
     });
 
+    // boucles CSS (.anim-*) actives seulement pour les scènes visibles
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => ((e.target as HTMLElement).dataset.inview = e.isIntersecting ? "1" : "0")),
+      { rootMargin: "20% 0px" },
+    );
+    document.querySelectorAll<HTMLElement>("[data-scene]").forEach((el) => io.observe(el));
+
     // les images modifient les hauteurs : recalcul une fois tout chargé
     const refresh = () => ScrollTrigger.refresh();
     window.addEventListener("load", refresh);
 
     return () => {
+      io.disconnect();
       window.removeEventListener("load", refresh);
       mm.revert();
       delete root.dataset.motion;

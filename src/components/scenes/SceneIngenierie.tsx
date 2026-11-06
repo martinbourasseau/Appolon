@@ -1,5 +1,8 @@
+import Image from "next/image";
 import type { Scene } from "@/content/scenes";
+import { StarField } from "@/components/scene-kit/StarField";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
+import { SceneDecor } from "@/components/scene-kit/SceneLayer";
 import { Folios, Lead } from "@/components/scene-kit/Editorial";
 
 /**
@@ -34,6 +37,13 @@ export function SceneIngenierie({ scene }: { scene: Scene }) {
     <section id={scene.id} className="scene scene--nuit" data-scene aria-label={scene.nav}>
       <ChapterOpener scene={scene} />
       <div className="scene__body">
+        {/* Ciel de la zone bleue : l'aquarelle fournie par Martin, sous des étoiles vivantes */}
+        <div className="night-sky" aria-hidden="true">
+          <Image src="/scenes/ingenierie/nuit-aquarelle-constellations.webp" alt="" fill sizes="100vw" className="night-sky__img" />
+          <Image src="/scenes/ingenierie/nuit-ciel-nebuleuse.webp" alt="" fill sizes="100vw" className="night-sky__nebula" />
+          <StarField density={0.00012} />
+        </div>
+        <SceneDecor items={scene.decor} />
         {scene.lead ? <Lead text={scene.lead} /> : null}
 
         <div className="engine">

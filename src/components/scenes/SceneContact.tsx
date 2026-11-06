@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Scene } from "@/content/scenes";
 import { site } from "@/content/site";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
+import { SceneDecor } from "@/components/scene-kit/SceneLayer";
 import { Provisoire, ProvisoireTag } from "@/components/scene-kit/Provisoire";
 
 /**
@@ -15,6 +16,7 @@ export function SceneContact({ scene }: { scene: Scene }) {
     <section id={scene.id} className="scene scene--aube scene--final" data-scene aria-label={scene.nav}>
       <ChapterOpener scene={scene} />
       <div className="scene__body contact">
+        <SceneDecor items={scene.decor} />
         <div className="contact__lyre" data-depth="-0.12">
           <Image src="/provisoire/lyre.webp" alt="" width={442} height={602} />
           <ProvisoireTag note="Lyre : détourage automatique" />

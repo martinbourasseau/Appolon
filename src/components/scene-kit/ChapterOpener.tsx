@@ -2,34 +2,55 @@ import Image from "next/image";
 import type { Scene } from "@/content/scenes";
 import { Provisoire } from "./Provisoire";
 import { CanonLines } from "./CanonLines";
+import { SceneLayer } from "./SceneLayer";
+import { StarField } from "./StarField";
 
 /**
- * Ouverture monumentale d'une scène.
+ * Ouverture monumentale d'une scène — un collage en profondeur.
  *
- * Le bloc fait ~2,2 écrans de haut ; la « scène » intérieure reste fixée
+ * Le bloc fait ~2,3 écrans de haut ; la « scène » intérieure reste fixée
  * pendant que le défilement :
- *   1. ouvre l'image par un masque en arche (data-arch),
- *   2. fait remonter et resserrer l'image (data-opener-img),
- *   3. élève le grand titre lettre par lettre (data-title).
- * Les animations sont pilotées par components/Motion.tsx.
+ *   1. ouvre le tableau par un masque en arche (data-arch),
+ *   2. fait remonter et resserrer le tableau (data-opener-img),
+ *   3. décale chaque plan découpé selon sa profondeur (data-layer-depth),
+ *   4. élève le grand titre lettre par lettre (data-title).
+ * Les plans « front » passent devant le titre et débordent du cadre,
+ * comme les figures découpées de la référence Shopify.
+ * Animations : components/Motion.tsx ; boucles continues : CSS (.anim-*).
  */
 export function ChapterOpener({ scene }: { scene: Scene }) {
   const dark = scene.tone === "nuit";
+  const op = scene.opener;
+  const back = op?.layers?.filter((l) => !l.front) ?? [];
+  const front = op?.layers?.filter((l) => l.front) ?? [];
   return (
     <div className={`opener opener--${scene.tone}`} data-opener>
       <div className="opener__stage">
         <div className="opener__arch" data-arch>
           <div className="opener__img" data-opener-img>
-            {scene.opener?.src ? (
-              <Image src={scene.opener.src} alt={scene.opener.alt} fill sizes="100vw" />
+            {op?.src ? (
+              <Image
+                src={op.src}
+                alt={op.alt}
+                fill
+                sizes="100vw"
+                quality={80}
+                style={{ objectPosition: op.position ?? "50% 50%" }}
+                className={dark ? "opener__painting opener__painting--nuit" : "opener__painting"}
+              />
             ) : (
               <Provisoire
                 label={`Image d'ouverture — scène ${scene.numeral}`}
-                expected={scene.opener?.expected ?? "Image plein écran 2560 × 1440"}
+                expected={op?.expected ?? "Image plein écran 2560 × 1440"}
                 tone={dark ? "sombre" : "clair"}
               />
             )}
           </div>
+          {back.map((l, i) => (
+            <SceneLayer key={i} layer={l} inOpener />
+          ))}
+          {dark ? <StarField className="opener__stars" /> : null}
+          <div className="opener__veil" aria-hidden="true" />
           <CanonLines className="opener__canon" />
         </div>
         <p className="opener__kicker" data-reveal>
@@ -43,6 +64,10 @@ export function ChapterOpener({ scene }: { scene: Scene }) {
             </span>
           ))}
         </h2>
+        {front.map((l, i) => (
+          <SceneLayer key={i} layer={l} inOpener sizes="50vw" />
+        ))}
+        {op?.credit ? <p className="opener__credit">{op.credit}</p> : null}
       </div>
     </div>
   );

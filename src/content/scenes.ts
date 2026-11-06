@@ -11,12 +11,51 @@
  * emplacement « Provisoire » est affiché à sa place.
  */
 
+/**
+ * Un plan de la composition : image découpée posée devant (ou derrière)
+ * le tableau, à la manière d'un collage en profondeur.
+ *  - depth : parallaxe au défilement (positif = recule, négatif = avance)
+ *  - anim  : petite animation continue (flotter, se balancer, dériver…)
+ */
+export type Layer = {
+  src: string;
+  w: number;
+  h: number;
+  /** position et taille (CSS) dans la scène */
+  style: Record<string, string | number>;
+  depth?: number;
+  anim?: "float" | "sway" | "drift" | "drift-rev" | "breathe" | "spin-slow";
+  blend?: "screen" | "multiply" | "soft-light";
+  opacity?: number;
+  /** bords fondus (pour une image rectangulaire) */
+  feather?: boolean;
+  /** recouvre toute la scène */
+  cover?: boolean;
+  flip?: boolean;
+  /** retourné à 180° (place les bords droits d'un découpage hors champ) */
+  turn?: boolean;
+  /** fondu d'un bord droit de découpage */
+  fade?: "bottom" | "top";
+  silhouette?: boolean;
+  /** masqué sur petits écrans */
+  desktopOnly?: boolean;
+  /** devant le titre (sinon derrière) */
+  front?: boolean;
+};
+
 export type Visual = {
   /** Fichier définitif dans /public. null = emplacement provisoire. */
   src: string | null;
   alt: string;
   /** Description de la ressource attendue, affichée dans l'emplacement */
   expected: string;
+  width?: number;
+  height?: number;
+  /** cadrage (object-position) */
+  position?: string;
+  /** crédit de l'œuvre */
+  credit?: string;
+  layers?: Layer[];
 };
 
 export type Folio = { title: string; text: string };
@@ -34,6 +73,8 @@ export type Scene = {
   lead?: string;
   folios?: Folio[];
   opener?: Visual;
+  /** Éléments animés posés sur les côtés du contenu */
+  decor?: Layer[];
   /** Ambiance de la scène : jour (marbre clair) ou nuit (bleu profond) */
   tone: "jour" | "nuit" | "aube";
 };
@@ -61,10 +102,23 @@ export const scenes: Scene[] = [
       { title: "Identité visuelle", text: "Couleurs, formes et usages réunis en un système cohérent, prêt à durer." },
     ],
     opener: {
-      src: null,
-      alt: "",
-      expected: "Image plein écran 2560 × 1440 : composition « atelier » — esquisses, maquettes d'interface, marbre et lumière du jour.",
+      src: "/scenes/concevoir/corot-san-bartolomeo.webp",
+      width: 2560,
+      height: 1592,
+      position: "50% 62%",
+      alt: "Rome, l'île Tibérine et ses ponts sous un ciel de plein jour, peinture de Corot",
+      expected: "",
+      credit: "Camille Corot, L'île et le pont San Bartolomeo, Rome, 1825-28 — domaine public",
+      layers: [
+        { src: "/scenes/concevoir/nuages-dores.webp", w: 735, h: 245, style: { left: "-8%", top: "-4%", width: "62vw" }, depth: 0.3, anim: "drift", feather: true, blend: "screen", opacity: 0.85 },
+        { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { right: "-7%", top: "18%", width: "30vw" }, depth: 0.2, anim: "drift-rev" },
+        { src: "/provisoire/lys.webp", w: 736, h: 825, style: { left: "-5%", bottom: "-10%", width: "28vw" }, depth: -0.25, anim: "sway", front: true },
+        { src: "/provisoire/nuage-grave.webp", w: 579, h: 251, style: { right: "-4%", bottom: "-3%", width: "36vw" }, depth: -0.15, anim: "drift", front: true },
+      ],
     },
+    decor: [
+      { src: "/provisoire/nuage-grave.webp", w: 579, h: 251, style: { right: "-6%", top: "38%", width: "26vw" }, depth: 0.2, anim: "drift" },
+    ],
     tone: "jour",
   },
   {
@@ -81,10 +135,23 @@ export const scenes: Scene[] = [
       { title: "Performance et référencement", text: "Des pages légères, rapides à charger et lisibles par les moteurs de recherche." },
     ],
     opener: {
-      src: null,
-      alt: "",
-      expected: "Image plein écran 2560 × 1440 : ciel nocturne ou temple de nuit, sur lequel apparaîtront des tracés de code et de structure.",
+      src: "/scenes/ingenierie/nuit-aquarelle-constellations.webp",
+      width: 736,
+      height: 1308,
+      position: "50% 40%",
+      alt: "Ciel nocturne à l'aquarelle, constellations et étoiles",
+      expected: "",
+      credit: "Aquarelle nocturne aux constellations — fournie par Martin",
+      layers: [
+        { src: "/scenes/ingenierie/nuit-ciel-nebuleuse.webp", w: 638, h: 1134, style: {}, cover: true, blend: "screen", opacity: 0.55, anim: "breathe", depth: 0.2 },
+        { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, style: { right: "-10%", top: "-16%", width: "44vw" }, turn: true, depth: 0.35, anim: "drift-rev" },
+        { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, style: { left: "-22%", bottom: "-34%", width: "46vw" }, depth: -0.3, anim: "float", front: true },
+      ],
     },
+    decor: [
+      { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, style: { left: "-14%", top: "30%", width: "34vw" }, depth: 0.25, anim: "float", opacity: 0.8, fade: "bottom" },
+      { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, style: { right: "-16%", top: "64%", width: "38vw" }, flip: true, depth: -0.2, anim: "drift-rev", opacity: 0.7, fade: "bottom" },
+    ],
     tone: "nuit",
   },
   {
@@ -95,10 +162,22 @@ export const scenes: Scene[] = [
     kicker: "Technologies employées",
     lead: "Chaque ordre d'architecture a sa fonction. Les outils aussi.",
     opener: {
-      src: null,
-      alt: "",
-      expected: "Image plein écran : les trois ordres (dorique, ionique, corinthien) en haute définition, sur fond transparent ou paysage.",
+      src: "/scenes/outils/valenciennes-villa-farnese.webp",
+      width: 2560,
+      height: 1620,
+      position: "50% 58%",
+      alt: "Ruines de la villa Farnèse sous un ciel clair, étude de Valenciennes",
+      expected: "",
+      credit: "Pierre-Henri de Valenciennes, À la villa Farnèse, les ruines, v. 1780 — Louvre, domaine public",
+      layers: [
+        { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { left: "30%", top: "3%", width: "34vw" }, depth: 0.3, anim: "drift" },
+        { src: "/scenes/outils/colonnade.webp", w: 668, h: 1192, style: { left: "-9%", bottom: "-10%", height: "92%" }, depth: -0.3, front: true },
+        { src: "/scenes/outils/rideau-colonne.webp", w: 249, h: 887, style: { right: "-1%", bottom: "-2%", height: "100%" }, depth: -0.2, anim: "sway", front: true, desktopOnly: true },
+      ],
     },
+    decor: [
+      { src: "/provisoire/lys.webp", w: 736, h: 825, style: { right: "-6%", bottom: "4%", width: "22vw" }, depth: -0.15, anim: "sway", desktopOnly: true },
+    ],
     tone: "jour",
   },
   {
@@ -109,9 +188,17 @@ export const scenes: Scene[] = [
     kicker: "Sites conçus et développés",
     lead: "Des sites réels, présentés tels qu'ils sont en ligne.",
     opener: {
-      src: null,
-      alt: "",
-      expected: "Image d'ouverture ou capture plein écran d'une réalisation choisie par Martin.",
+      src: "/scenes/realisations/eckersberg-arches-colisee.webp",
+      width: 2560,
+      height: 1659,
+      position: "50% 50%",
+      alt: "Vue sur Rome à travers trois arches du Colisée, peinture d'Eckersberg",
+      expected: "",
+      credit: "C. W. Eckersberg, Vue à travers trois arches du Colisée, 1815 — domaine public",
+      layers: [
+        { src: "/provisoire/nuage-grave.webp", w: 579, h: 251, style: { left: "-6%", top: "8%", width: "30vw" }, depth: 0.25, anim: "drift" },
+        { src: "/scenes/realisations/globe.webp", w: 560, h: 854, style: { right: "1%", bottom: "-8%", height: "44%" }, depth: -0.3, anim: "float", front: true },
+      ],
     },
     tone: "aube",
   },
@@ -130,10 +217,22 @@ export const scenes: Scene[] = [
       { title: "Mettre en ligne", text: "Publication, référencement de base et prise en main." },
     ],
     opener: {
-      src: null,
-      alt: "",
-      expected: "Image plein écran : la lyre ou les mains d'un sculpteur — l'idée qui prend forme.",
+      src: "/scenes/sur-mesure/corot-civita-castellana.webp",
+      width: 2560,
+      height: 1841,
+      position: "50% 45%",
+      alt: "Rochers dominant une vallée boisée à Civita Castellana, étude de Corot",
+      expected: "",
+      credit: "Camille Corot, Civita Castellana, rochers dominant la vallée boisée, 1826-27 — domaine public",
+      layers: [
+        { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { right: "8%", top: "4%", width: "28vw" }, depth: 0.3, anim: "drift-rev" },
+        { src: "/scenes/sur-mesure/ruines-arche.webp", w: 498, h: 797, style: { right: "-7%", bottom: "-10%", height: "70%" }, depth: -0.3, anim: "breathe", front: true },
+        { src: "/provisoire/lys.webp", w: 736, h: 825, style: { left: "-7%", bottom: "-12%", width: "26vw" }, depth: -0.2, anim: "sway", front: true, desktopOnly: true },
+      ],
     },
+    decor: [
+      { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { left: "-8%", top: "12%", width: "26vw" }, depth: 0.2, anim: "drift" },
+    ],
     tone: "jour",
   },
   {
@@ -144,9 +243,18 @@ export const scenes: Scene[] = [
     kicker: "Un projet de site web",
     lead: "Décrivez-nous votre projet : nous revenons vers vous pour en parler.",
     opener: {
-      src: null,
-      alt: "",
-      expected: "Image finale plein écran : coucher de soleil sur le paysage du hero, Apollon de dos ou en silhouette.",
+      src: "/scenes/contact/kuindzhi-coucher-rouge.webp",
+      width: 2560,
+      height: 1857,
+      position: "50% 50%",
+      alt: "Coucher de soleil rouge sur le Dniepr, peinture de Kuindzhi",
+      expected: "",
+      credit: "Arkhip Kuindzhi, Coucher de soleil rouge sur le Dniepr, 1905-08 — Metropolitan Museum, domaine public",
+      layers: [
+        { src: "/provisoire/apollon-statue.webp", w: 678, h: 1350, style: { left: "50%", bottom: "0", height: "72%", translate: "-50% 0" }, silhouette: true, depth: 0.1 },
+        { src: "/scenes/contact/pivoines.webp", w: 631, h: 928, style: { left: "-5%", bottom: "-14%", height: "64%" }, depth: -0.3, anim: "sway", front: true },
+        { src: "/provisoire/lyre.webp", w: 442, h: 602, style: { right: "6%", bottom: "34%", height: "26%" }, depth: -0.2, anim: "float", front: true, desktopOnly: true },
+      ],
     },
     tone: "aube",
   },

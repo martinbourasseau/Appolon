@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Scene } from "@/content/scenes";
 import { orders, technologies } from "@/content/technologies";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
+import { SceneDecor } from "@/components/scene-kit/SceneLayer";
 import { Lead } from "@/components/scene-kit/Editorial";
 import { ProvisoireTag } from "@/components/scene-kit/Provisoire";
 
@@ -17,6 +18,7 @@ export function SceneOutils({ scene }: { scene: Scene }) {
     <section id={scene.id} className="scene scene--jour" data-scene aria-label={scene.nav}>
       <ChapterOpener scene={scene} />
       <div className="scene__body">
+        <SceneDecor items={scene.decor} />
         {scene.lead ? <Lead text={scene.lead} /> : null}
 
         <div className="ordres">

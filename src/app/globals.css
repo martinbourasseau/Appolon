@@ -1465,3 +1465,317 @@ html[data-intro="gl"] .sommaire,
 html[data-intro="gl"] .bandeau-provisoire {
   visibility: hidden;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   COLLAGES EN PROFONDEUR — tableaux + plans découpés animés
+   ═══════════════════════════════════════════════════════════════ */
+
+.opener__painting {
+  object-fit: cover;
+}
+/* le grand titre se lit sur tous les tableaux */
+.opener--jour,
+.opener--aube,
+.opener--nuit {
+  --opener-ink: #fbf3e4;
+  --opener-glow: rgba(25, 18, 10, 0.5);
+}
+.opener__title {
+  z-index: 3;
+  text-shadow:
+    0 2px 30px var(--opener-glow),
+    0 0 2px rgba(25, 18, 10, 0.25);
+}
+.opener__kicker {
+  z-index: 3;
+  color: #fbf3e4;
+  text-shadow: 0 1px 12px rgba(25, 18, 10, 0.55);
+}
+/* voile bas pour asseoir le titre sur le tableau */
+.opener__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(20, 14, 8, 0.18) 0%, transparent 28%, transparent 55%, rgba(20, 14, 8, 0.42) 100%);
+  pointer-events: none;
+}
+.opener__canon {
+  z-index: 1;
+  opacity: 0.32;
+}
+.opener__credit {
+  position: absolute;
+  z-index: 4;
+  right: var(--gutter);
+  bottom: 0.9rem;
+  max-width: 36rem;
+  font: 500 0.62rem/1.3 var(--sans);
+  letter-spacing: 0.06em;
+  color: rgba(251, 243, 228, 0.78);
+  text-align: right;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── plans ─── */
+.layer {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  will-change: transform;
+}
+.layer--front {
+  z-index: 4;
+}
+.layer--cover {
+  inset: -4%;
+}
+.layer--cover .layer__flip,
+.layer--cover .layer__img {
+  width: 100%;
+  height: 100%;
+}
+.layer__flip {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.layer__flip.is-flipped {
+  transform: scaleX(-1);
+}
+.layer__img {
+  display: block;
+  width: auto;
+  max-width: none;
+  height: 100%;
+}
+.layer:not(.layer--cover) .layer__img {
+  width: 100%;
+  height: auto;
+}
+.layer[style*="height"]:not(.layer--cover) .layer__img {
+  width: auto;
+  height: 100%;
+}
+.layer--cover .layer__img {
+  object-fit: cover;
+}
+.layer--feather .layer__img {
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 40%, transparent 72%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 40%, transparent 72%);
+}
+.layer--front .layer__img {
+  filter: drop-shadow(0 24px 30px rgba(20, 12, 6, 0.35));
+}
+.layer--silhouette .layer__img {
+  filter: brightness(0.12) sepia(0.6) saturate(2) hue-rotate(-12deg) drop-shadow(0 0 22px rgba(255, 140, 60, 0.35));
+}
+
+/* ─── boucles continues, discrètes ─── */
+.anim-float {
+  animation: l-float 9s ease-in-out infinite alternate;
+}
+.anim-sway {
+  transform-origin: 30% 100%;
+  animation: l-sway 7s ease-in-out infinite alternate;
+}
+.anim-drift {
+  animation: l-drift 24s ease-in-out infinite alternate;
+}
+.anim-drift-rev {
+  animation: l-drift 28s ease-in-out infinite alternate-reverse;
+}
+.anim-breathe {
+  animation: l-breathe 12s ease-in-out infinite alternate;
+}
+.anim-spin-slow {
+  animation: l-spin 90s linear infinite;
+}
+@keyframes l-float {
+  from {
+    transform: translate3d(0, -1.8%, 0) rotate(-1deg);
+  }
+  to {
+    transform: translate3d(0, 2.2%, 0) rotate(1.2deg);
+  }
+}
+@keyframes l-sway {
+  from {
+    transform: rotate(-2.4deg);
+  }
+  to {
+    transform: rotate(2.6deg);
+  }
+}
+@keyframes l-drift {
+  from {
+    transform: translate3d(-6%, 0, 0);
+  }
+  to {
+    transform: translate3d(6%, -2%, 0);
+  }
+}
+@keyframes l-breathe {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+@keyframes l-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* en pause hors écran, et absentes si mouvement réduit */
+[data-scene]:not([data-inview="1"]) [class*="anim-"] {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="anim-"] {
+    animation: none !important;
+  }
+}
+
+/* ─── décors latéraux du contenu ─── */
+.scene__body {
+  position: relative;
+}
+.scene-decor {
+  position: absolute;
+  inset: 0 auto 0 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  z-index: 0;
+  pointer-events: none;
+}
+.scene__body > :not(.scene-decor):not(.night-sky) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ═══ ZONE BLEUE (scène III) — nuit étoilée, exclusivement ici ═══ */
+.opener__painting--nuit {
+  filter: saturate(1.15) contrast(1.05);
+}
+.opener--nuit .opener__veil {
+  background: linear-gradient(180deg, rgba(6, 10, 28, 0.25), transparent 30%, transparent 55%, rgba(6, 10, 28, 0.6));
+}
+.opener--nuit .opener__canon {
+  color: #cfe3ff;
+  opacity: 0.28;
+}
+.opener__stars,
+.starfield {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.opener__stars {
+  z-index: 2;
+}
+.night-sky {
+  position: absolute;
+  inset: 0 auto 0 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--nuit);
+}
+.night-sky__img {
+  object-fit: cover;
+  opacity: 0.55;
+  filter: saturate(1.1) brightness(0.75);
+}
+.night-sky__nebula {
+  object-fit: cover;
+  mix-blend-mode: screen;
+  opacity: 0.25;
+}
+.night-sky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--nuit) 0%, rgba(12, 19, 38, 0.55) 18%, rgba(12, 19, 38, 0.55) 82%, var(--nuit) 100%);
+}
+.scene--nuit .tablet {
+  background: linear-gradient(180deg, rgba(15, 23, 48, 0.88), rgba(10, 16, 36, 0.92));
+  backdrop-filter: blur(3px);
+}
+
+/* ─── mobile ─── */
+@media (max-width: 768px) {
+  .layer--desktop {
+    display: none;
+  }
+  .opener__credit {
+    left: var(--gutter);
+    bottom: 4.6rem;
+    text-align: left;
+    font-size: 0.55rem;
+  }
+  .layer--front {
+    transform-origin: bottom;
+  }
+}
+.layer__flip.is-turned {
+  transform: rotate(180deg);
+}
+.layer--fade-bottom .layer__img {
+  -webkit-mask-image: linear-gradient(180deg, #000 62%, transparent 96%);
+  mask-image: linear-gradient(180deg, #000 62%, transparent 96%);
+}
+.layer--fade-top .layer__img {
+  -webkit-mask-image: linear-gradient(0deg, #000 62%, transparent 96%);
+  mask-image: linear-gradient(0deg, #000 62%, transparent 96%);
+}
+.legal__h2 {
+  margin: 3.5rem 0 1rem;
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 400;
+}
+.legal__credits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+.legal__credits li {
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--pierre);
+}
+.legal__credits span {
+  display: inline-block;
+  min-width: 9rem;
+  font-weight: 600;
+}
+
+/* mobile : les plans découpés restent des ornements de coin, jamais devant le titre */
+@media (max-width: 768px) {
+  .opener .layer--front {
+    scale: 0.66;
+  }
+  .opener .layer--front:not([style*="left"]) {
+    transform-origin: 100% 100%;
+  }
+  .opener .layer--front[style*="left"] {
+    transform-origin: 0 100%;
+  }
+  .opener__title,
+  .opener__kicker {
+    z-index: 5;
+  }
+  .opener .layer:not(.layer--front):not(.layer--cover) {
+    max-width: 62vw;
+  }
+  .opener .layer--silhouette {
+    max-height: 52svh;
+    max-width: none;
+  }
+}

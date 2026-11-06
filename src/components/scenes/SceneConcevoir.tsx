@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Scene } from "@/content/scenes";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
+import { SceneDecor } from "@/components/scene-kit/SceneLayer";
 import { Folios, Lead } from "@/components/scene-kit/Editorial";
 import { Provisoire, ProvisoireTag } from "@/components/scene-kit/Provisoire";
 import { CanonLines } from "@/components/scene-kit/CanonLines";
@@ -16,6 +17,7 @@ export function SceneConcevoir({ scene }: { scene: Scene }) {
     <section id={scene.id} className="scene scene--jour" data-scene aria-label={scene.nav}>
       <ChapterOpener scene={scene} />
       <div className="scene__body">
+        <SceneDecor items={scene.decor} />
         {scene.lead ? <Lead text={scene.lead} /> : null}
 
         <div className="atelier" data-atelier>
