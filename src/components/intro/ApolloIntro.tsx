@@ -264,13 +264,16 @@ export function ApolloIntro() {
         ro.observe(stage);
         gsap.ticker.add(tick);
         const T = tl;
-        if (freezeAt !== null) T.seek(freezeAt).pause();
+        if (freezeAt !== null) {
+          T.pause().seek(freezeAt, false); // false : déclenche onUpdate/onComplete
+          apply();
+        }
         else T.play(0);
         (window as unknown as { __apollonIntro: object }).__apollonIntro = {
           tl: T,
           duration: T.duration(),
           seek: (t: number) => {
-            T.pause().seek(t);
+            T.pause().seek(t, false);
             apply();
           },
         };
