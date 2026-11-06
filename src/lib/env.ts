@@ -31,5 +31,11 @@ function resolveSiteUrl(): string {
 
 export const siteUrl = resolveSiteUrl();
 
-/** Seule la production est indexable par les moteurs de recherche */
-export const indexable = deployEnv === "production";
+/**
+ * PUBLICATION OFFICIELLE — à passer à `true` uniquement avec l'accord de Martin.
+ * Tant que le site est provisoire, la production elle-même est en noindex.
+ */
+export const officiallyPublished = false;
+
+/** Indexable seulement en production ET après publication officielle */
+export const indexable = deployEnv === "production" && officiallyPublished;
