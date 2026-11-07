@@ -192,7 +192,13 @@ export function ApolloIntro() {
         const local = gsap.utils.clamp(0, 1, loader.p * 1.35 - (i / rayLines.length) * 0.35);
         l.style.strokeDashoffset = String(1 - local);
       });
-    const minLoader = gsap.to(loader, { p: 0.7, duration: level === "lite" ? 0.8 : 1.15, ease: "power2.inOut", onUpdate: drawRays });
+    // progression réelle : chaque image décodée fait avancer les rayons (lissé, jamais anticipé)
+    let loaded = 0;
+    const minLoader = gsap.to(loader, { p: 0, duration: 0.01 });
+    const onLayerReady = () => {
+      loaded += 1;
+      gsap.to(loader, { p: (loaded / Math.max(1, layers.length)) * 0.9, duration: 0.45, ease: "power2.out", overwrite: true, onUpdate: drawRays });
+    };
 
     // 2) ouverture : construite une fois les images prêtes (voir plus bas)
     let tl: gsap.core.Timeline | null = null;
@@ -232,7 +238,7 @@ export function ApolloIntro() {
     };
 
     const timeout = window.setTimeout(fallback, 6000);
-    Promise.all([Promise.all(layers.map((L) => waitImage(L.img))), new Promise((r) => minLoader.eventCallback("onComplete", r))])
+    Promise.all(layers.map((L) => waitImage(L.img).then(onLayerReady)))
       .then(() => {
         if (cancelled) return;
         window.clearTimeout(timeout);

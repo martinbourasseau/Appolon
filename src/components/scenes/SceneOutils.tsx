@@ -5,6 +5,7 @@ import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
 import { SceneDecor } from "@/components/scene-kit/SceneLayer";
 import { Lead } from "@/components/scene-kit/Editorial";
 import { ProvisoireTag } from "@/components/scene-kit/Provisoire";
+import { DeskScene } from "@/components/desk/DeskScene";
 
 /**
  * SCÈNE IV — Les outils.
@@ -20,6 +21,8 @@ export function SceneOutils({ scene }: { scene: Scene }) {
       <div className="scene__body">
         <SceneDecor items={scene.decor} />
         {scene.lead ? <Lead text={scene.lead} /> : null}
+
+        <DeskScene />
 
         <div className="ordres">
           <div className="ordres__colonnes" data-depth="0.15">

@@ -75,6 +75,11 @@ export function SceneIngenierie({ scene }: { scene: Scene }) {
 
         {scene.folios ? <Folios items={scene.folios} numeral={scene.numeral} /> : null}
       </div>
+      {/* Sortie de la zone bleue : l'aube — les étoiles s'éteignent, la lumière du jour monte */}
+      <div className="dawn" data-dawn aria-hidden="true">
+        <StarField className="dawn__stars" density={0.00008} />
+        <div className="dawn__sun" data-dawn-sun />
+      </div>
     </section>
   );
 }

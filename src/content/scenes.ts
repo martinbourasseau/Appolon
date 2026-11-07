@@ -53,10 +53,25 @@ export type Visual = {
   height?: number;
   /** cadrage (object-position) */
   position?: string;
+  /**
+   * Révélation propre à la scène (transition d'entrée) :
+   * arch = arche · iris = lunette astronomique · shutters = volets de marbre
+   * torn = papier déchiré · golden = rectangle d'or · sun = disque solaire
+   */
+  reveal?: "arch" | "iris" | "shutters" | "torn" | "golden" | "sun";
+  /**
+   * Petit écran : travelling horizontal (object-position x, en %) pour montrer
+   * toute la largeur du tableau au fil du défilement au lieu d'en couper une partie.
+   */
+  pan?: [number, number];
+  /** Mouvement de caméra (ordinateur) : départ → arrivée */
+  camera?: { from: CamPose; to: CamPose };
   /** crédit de l'œuvre */
   credit?: string;
   layers?: Layer[];
 };
+
+export type CamPose = { scale: number; x?: number; y?: number; rotate?: number };
 
 export type Folio = { title: string; text: string };
 
@@ -106,6 +121,7 @@ export const scenes: Scene[] = [
       width: 2560,
       height: 1592,
       position: "50% 62%",
+      reveal: "arch", pan: [12, 78], camera: { from: { scale: 1.25, y: 6 }, to: { scale: 1, y: -3 } },
       alt: "Rome, l'île Tibérine et ses ponts sous un ciel de plein jour, peinture de Corot",
       expected: "",
       credit: "Camille Corot, L'île et le pont San Bartolomeo, Rome, 1825-28 — domaine public",
@@ -139,6 +155,7 @@ export const scenes: Scene[] = [
       width: 736,
       height: 1308,
       position: "50% 40%",
+      reveal: "iris", camera: { from: { scale: 1.45, rotate: -5 }, to: { scale: 1.04, rotate: 0 } },
       alt: "Ciel nocturne à l'aquarelle, constellations et étoiles",
       expected: "",
       credit: "Aquarelle nocturne aux constellations — fournie par Martin",
@@ -166,6 +183,7 @@ export const scenes: Scene[] = [
       width: 2560,
       height: 1620,
       position: "50% 58%",
+      reveal: "shutters", pan: [18, 76], camera: { from: { scale: 1.16, x: -4 }, to: { scale: 1, x: 2 } },
       alt: "Ruines de la villa Farnèse sous un ciel clair, étude de Valenciennes",
       expected: "",
       credit: "Pierre-Henri de Valenciennes, À la villa Farnèse, les ruines, v. 1780 — Louvre, domaine public",
@@ -192,6 +210,7 @@ export const scenes: Scene[] = [
       width: 2560,
       height: 1659,
       position: "50% 50%",
+      reveal: "torn", pan: [32, 68], camera: { from: { scale: 1.32, y: 10 }, to: { scale: 1, y: -2 } },
       alt: "Vue sur Rome à travers trois arches du Colisée, peinture d'Eckersberg",
       expected: "",
       credit: "C. W. Eckersberg, Vue à travers trois arches du Colisée, 1815 — domaine public",
@@ -221,6 +240,7 @@ export const scenes: Scene[] = [
       width: 2560,
       height: 1841,
       position: "50% 45%",
+      reveal: "golden", pan: [12, 70], camera: { from: { scale: 1.2, x: 3, rotate: 2 }, to: { scale: 1, x: -2, rotate: 0 } },
       alt: "Rochers dominant une vallée boisée à Civita Castellana, étude de Corot",
       expected: "",
       credit: "Camille Corot, Civita Castellana, rochers dominant la vallée boisée, 1826-27 — domaine public",
@@ -247,6 +267,7 @@ export const scenes: Scene[] = [
       width: 2560,
       height: 1857,
       position: "50% 50%",
+      reveal: "sun", pan: [40, 60], camera: { from: { scale: 1.12, y: -6 }, to: { scale: 1.02, y: 2 } },
       alt: "Coucher de soleil rouge sur le Dniepr, peinture de Kuindzhi",
       expected: "",
       credit: "Arkhip Kuindzhi, Coucher de soleil rouge sur le Dniepr, 1905-08 — Metropolitan Museum, domaine public",

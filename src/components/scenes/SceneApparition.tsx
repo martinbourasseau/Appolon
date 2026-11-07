@@ -70,6 +70,9 @@ export function SceneApparition() {
 
         <IntroRays />
 
+        {/* Sortie par la lumière : le soleil envahit l'écran, l'arche de la scène II s'ouvre dans ce blanc */}
+        <div className="hero__flare" data-hero-flare aria-hidden="true" />
+
         <div className="hero__copy" data-hero-copy>
           <p className="hero__line">
             La création web, comme <em>un art</em> et comme <em>une ingénierie</em>.
