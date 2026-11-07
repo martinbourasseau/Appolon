@@ -66,18 +66,40 @@ vec2 coverUv(vec2 uv, vec2 res, vec2 size, vec2 pos, float zoom, vec2 focus) {
   return (px - off) / drawn;
 }
 
+// contours (Sobel) : la matière devient gravure
+float sobel(sampler2D t, vec2 uv, vec2 tx) {
+  float tl = dot(texture(t, uv + vec2(-tx.x, -tx.y)).rgb, vec3(0.33));
+  float tc = dot(texture(t, uv + vec2(0.0, -tx.y)).rgb, vec3(0.33));
+  float tr = dot(texture(t, uv + vec2(tx.x, -tx.y)).rgb, vec3(0.33));
+  float ml = dot(texture(t, uv + vec2(-tx.x, 0.0)).rgb, vec3(0.33));
+  float mr = dot(texture(t, uv + vec2(tx.x, 0.0)).rgb, vec3(0.33));
+  float bl = dot(texture(t, uv + vec2(-tx.x, tx.y)).rgb, vec3(0.33));
+  float bc = dot(texture(t, uv + vec2(0.0, tx.y)).rgb, vec3(0.33));
+  float br = dot(texture(t, uv + vec2(tx.x, tx.y)).rgb, vec3(0.33));
+  float gx = -tl - 2.0 * ml - bl + tr + 2.0 * mr + br;
+  float gy = -tl - 2.0 * tc - tr + bl + 2.0 * bc + br;
+  return length(vec2(gx, gy));
+}
+
 void main() {
   vec2 px = vUv * uRes;
   float asp = uRes.x / uRes.y;
   vec2 q = (px - uOrigin) / uRes.y;           // repère isotrope
   float dist = length(q);
+  float on = step(0.001, uP) * (1.0 - step(0.999, uP));
 
-  // champ de combustion : distance au foyer, déformée par un bruit qui s'écoule
+  /* Chorégraphie (relevée image par image sur la référence) :
+   *  0 → 0,12  une étincelle de lumière naît au foyer et s'intensifie ;
+   *  0,06 → 0,3 toute la scène I s'assombrit et se change en gravure lumineuse ;
+   *  0,08 → 1  la brèche s'ouvre, bord en feu ; derrière, la scène II apparaît
+   *            d'abord en gravure près de la lisière, en couleur au centre ;
+   *  0,85 → 1  la gravure résiduelle s'efface : la scène II est nette. */
+  float pr = clamp((uP - 0.08) / 0.92, 0.0, 1.0);
   vec2 flow = vec2(0.0, -uTime * 0.06);
   float n = fbm(vUv * vec2(asp, 1.0) * 3.2 + flow);
   float n2 = fbm(vUv * vec2(asp, 1.0) * 11.0 - flow * 2.0);
   float field = dist + (n - 0.5) * 0.42 + (n2 - 0.5) * 0.07;
-  float reach = mix(-0.12, uMaxD + 0.3, uP);
+  float reach = mix(-0.12, uMaxD + 0.3, pr);
   float d = field - reach;                     // < 0 : brûlé
 
   // ── à travers la brèche : la scène II, la caméra avance ──
@@ -86,10 +108,16 @@ void main() {
   vec2 buv = coverUv(vUv, uRes, uBSize, uBPos, uBZoom, uOrigin);
   buv += nrm * heat * 0.012 * vec2(1.0 / asp, 1.0);   // air chaud sur la lisière
   vec3 colB = texture(uB, buv).rgb;
-  // voile de l'ouverture II (mêmes valeurs que .opener__veil) : relais sans saut
   float vy = vUv.y;
   float veil = vy < 0.3 ? mix(0.32, 0.0, vy / 0.3) : (vy < 0.5 ? 0.0 : mix(0.0, 0.55, (vy - 0.5) / 0.5));
   colB = mix(colB, vec3(0.078, 0.055, 0.031), veil);
+  // près de la lisière, la scène II n'est encore qu'une gravure ; elle se colore vers le centre
+  float bEng = smoothstep(-0.36, -0.1, d) * (1.0 - smoothstep(0.82, 1.0, uP));
+  if (bEng > 0.001) {
+    float eb = smoothstep(0.1, 0.45, sobel(uB, buv, 1.6 / uBSize * max(1.0, uBSize.y / uRes.y)));
+    vec3 engB = mix(vec3(0.05, 0.045, 0.06), vec3(1.0, 0.93, 0.8), eb) + colB * 0.12;
+    colB = mix(colB, engB, bEng);
+  }
   colB = mix(colB, colB * vec3(1.18, 0.96, 0.82) + 0.05, clamp(heat * 1.2, 0.0, 1.0)); // reflet du feu
 
   // ── la frontière ──
@@ -101,59 +129,46 @@ void main() {
   vec3 cGold = vec3(1.0, 0.72, 0.28);
   vec3 cOrange = vec3(0.98, 0.42, 0.08);
   vec3 cRed = vec3(0.62, 0.08, 0.03);
-
-  // matière carbonisée, piquée de braises
   float specks = smoothstep(0.62, 0.8, fbm(vUv * vec2(asp, 1.0) * 26.0 + uTime * 0.3)) * ember;
   vec3 char = mix(vec3(0.07, 0.035, 0.02), cOrange * 1.4, specks * flick);
-  float charA = ember * 0.92;
+  float charA = ember * 0.92 * step(0.0005, pr);
 
-  // ── en avant du feu : le paysage se change en gravure lumineuse ──
+  // ── la scène I entière se change en gravure ; plus fort en avant du feu ──
+  float gA = smoothstep(0.06, 0.3, uP);
   float ahead = smoothstep(0.02, 0.06, d) * (1.0 - smoothstep(0.06, 0.32, d));
   vec2 auv = (px - uARect.xy) / uARect.zw;
   float engrave = 0.0;
-  if (ahead > 0.001 && auv.x > 0.0 && auv.x < 1.0 && auv.y > 0.0 && auv.y < 1.0) {
-    vec2 tx = 1.5 / uASize;
-    float tl = dot(texture(uA, auv + vec2(-tx.x, -tx.y)).rgb, vec3(0.33));
-    float tc = dot(texture(uA, auv + vec2(0.0, -tx.y)).rgb, vec3(0.33));
-    float tr = dot(texture(uA, auv + vec2(tx.x, -tx.y)).rgb, vec3(0.33));
-    float ml = dot(texture(uA, auv + vec2(-tx.x, 0.0)).rgb, vec3(0.33));
-    float mr = dot(texture(uA, auv + vec2(tx.x, 0.0)).rgb, vec3(0.33));
-    float bl = dot(texture(uA, auv + vec2(-tx.x, tx.y)).rgb, vec3(0.33));
-    float bc = dot(texture(uA, auv + vec2(0.0, tx.y)).rgb, vec3(0.33));
-    float br = dot(texture(uA, auv + vec2(tx.x, tx.y)).rgb, vec3(0.33));
-    float gx = -tl - 2.0 * ml - bl + tr + 2.0 * mr + br;
-    float gy = -tl - 2.0 * tc - tr + bl + 2.0 * bc + br;
-    engrave = smoothstep(0.12, 0.5, length(vec2(gx, gy))) * ahead;
+  float aLines = max(gA * 0.75, ahead);
+  if (aLines > 0.001 && auv.x > 0.0 && auv.x < 1.0 && auv.y > 0.0 && auv.y < 1.0) {
+    engrave = smoothstep(0.12, 0.5, sobel(uA, auv, 1.5 / uASize)) * aLines;
   }
-  // assombrissement de la scène I juste avant qu'elle ne brûle
-  float scorch = (1.0 - smoothstep(0.02, 0.22, d)) * step(0.0, d);
+  float dim = max(gA * 0.62, (1.0 - smoothstep(0.02, 0.22, d)) * 0.55) * step(0.0, d);
+
+  // ── l'étincelle au foyer ──
+  float spark = smoothstep(0.0, 0.1, uP) * (1.0 - smoothstep(0.12, 0.3, uP));
+  float bloom = exp(-dist * 9.0) * spark * 1.6 + exp(-dist * 30.0) * spark;
 
   // ── composition (alpha prémultiplié) ──
   vec3 col = vec3(0.0);
   float a = 0.0;
-  // voile de roussi + gravure dorée sur la scène I
-  col = mix(col, vec3(0.16, 0.07, 0.03), scorch * 0.55);
-  a = max(a, scorch * 0.55);
-  col += vec3(1.0, 0.78, 0.42) * engrave * 0.9;
-  a = max(a, engrave * 0.75);
-  // carbonisé
+  col = mix(col, vec3(0.07, 0.05, 0.05), dim);
+  a = max(a, dim);
+  col += vec3(1.0, 0.9, 0.74) * engrave * 0.85;
+  a = max(a, engrave * 0.8);
   col = mix(col, char, charA);
   a = max(a, charA);
-  // scène II dans la brèche
-  float inside = 1.0 - smoothstep(-0.004, 0.0, d);
+  float inside = (1.0 - smoothstep(-0.004, 0.0, d)) * step(0.0005, pr);
   col = mix(col, colB, inside);
   a = max(a, inside);
-  // flammes
-  vec3 fire = mix(cRed, cOrange, flame) ;
+  vec3 fire = mix(cRed, cOrange, flame);
   fire = mix(fire, cGold, core * 0.8);
   fire = mix(fire, cWhite, core * core);
-  float fireA = clamp(flame * 0.95 * flick + core, 0.0, 1.0) * step(0.001, uP) * (1.0 - step(0.999, uP));
+  float fireA = clamp(flame * 0.95 * flick + core, 0.0, 1.0) * on * step(0.0005, pr);
   col = mix(col, fire * (1.2 + 0.4 * flick), fireA);
   a = max(a, fireA);
-  // halo
-  float halo = exp(-abs(d) * 12.0) * 0.35 * step(0.001, uP) * (1.0 - smoothstep(0.92, 1.0, uP));
-  col += cOrange * halo;
-  a = clamp(a + halo * 0.4, 0.0, 1.0);
+  float halo = exp(-abs(d) * 12.0) * 0.35 * on * step(0.0005, pr) * (1.0 - smoothstep(0.92, 1.0, uP));
+  col += cOrange * halo + vec3(1.0, 0.92, 0.75) * bloom;
+  a = clamp(a + halo * 0.4 + bloom * 0.8, 0.0, 1.0);
 
   outColor = vec4(col, a);
 }`;
@@ -171,7 +186,8 @@ out float vLife;
 out float vHot;
 void main() {
   float asp = uRes.x / uRes.y;
-  float reach = mix(-0.12, uMaxD + 0.3, uP);
+  float pr = clamp((uP - 0.08) / 0.92, 0.0, 1.0);
+  float reach = mix(-0.12, uMaxD + 0.3, pr);
   float life = fract(uTime * (0.22 + aSeed.y * 0.35) + aSeed.z * 17.0);
   float ang = aSeed.x + sin(uTime * 0.7 + aSeed.z * 40.0) * 0.08;
   float r = max(0.0, reach - 0.02 + life * (0.05 + aSeed.y * 0.12));

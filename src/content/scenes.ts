@@ -218,7 +218,7 @@ export const scenes: Scene[] = [
       width: 2560,
       height: 1659,
       position: "50% 50%",
-      reveal: "torn", pan: [32, 68], camera: { from: { scale: 1.32, y: 10 }, to: { scale: 1, y: -2 } },
+      reveal: "torn", pan: [32, 68], camera: { from: { scale: 2.1, y: 4 }, to: { scale: 1, y: 0 } },
       alt: "Vue sur Rome à travers trois arches du Colisée, peinture d'Eckersberg",
       expected: "",
       credit: "C. W. Eckersberg, Vue à travers trois arches du Colisée, 1815 — domaine public",

@@ -2269,3 +2269,115 @@ html[data-burn] .scene--apparition {
     color: var(--encre-2);
   }
 }
+
+.burn-title {
+  position: fixed !important;
+  z-index: 31 !important;
+  margin: 0;
+  color: #fbf3e4;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* ═══ CHAPEAU SUR LE TABLEAU (après la montée du titre) ═══ */
+.opener__lead {
+  position: absolute;
+  z-index: 6;
+  left: 19vw;
+  bottom: 12svh;
+  max-width: min(32ch, 62vw);
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(1.4rem, 2.5vw, 2.6rem);
+  line-height: 1.14;
+  color: #fbf3e4;
+  text-shadow: 0 1px 2px rgba(20, 14, 8, 0.7), 0 4px 28px rgba(20, 14, 8, 0.6);
+}
+.opener__lead .lead__drop {
+  color: #f1d9a2;
+}
+@media (max-width: 768px) {
+  .opener__lead {
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: 16svh;
+    max-width: none;
+    font-size: clamp(1.25rem, 5.4vw, 1.6rem);
+  }
+}
+html[data-motion="reduced"] .opener__lead {
+  bottom: auto;
+  top: 36svh;
+}
+
+/* ═══ IV : nuage de mots en profondeur ═══ */
+.wordcloud {
+  position: relative;
+  margin: 4rem calc(50% - 50vw) 2rem;
+  overflow: visible;
+}
+.wordcloud__w {
+  position: absolute;
+  white-space: nowrap;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1;
+  font-size: var(--fs, 1.4rem);
+  color: var(--encre);
+}
+.wordcloud__w.is-craft i {
+  display: none;
+}
+.wordcloud__w.is-craft {
+  font-style: normal;
+  color: var(--encre-2);
+}
+.wordcloud__w i {
+  margin-right: 0.08em;
+  font-style: normal;
+  color: var(--or);
+}
+.wordcloud__w.is-faint {
+  color: var(--encre-2);
+  opacity: 0.6;
+}
+@media (max-width: 768px) {
+  .wordcloud {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.6rem 1.1rem;
+    height: auto !important;
+    margin-inline: 0;
+    padding: 2rem 0;
+  }
+  .wordcloud__w {
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    font-size: calc(var(--fs, 1.4rem) * 0.62);
+  }
+}
+
+.desk__backdrop {
+  object-fit: cover;
+  object-position: 50% 40%;
+}
+.desk__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(239, 232, 218, 0.15) 0%, rgba(239, 232, 218, 0) 35%, rgba(239, 232, 218, 0.55) 78%, rgba(239, 232, 218, 0.85) 100%),
+    radial-gradient(ellipse 60% 50% at 50% 55%, rgba(255, 246, 228, 0.25), transparent 70%);
+}
+.desk--static .desk__backdrop,
+.desk--static .desk__veil {
+  display: none;
+}
+.desk__kicker {
+  color: #fbf3e4 !important;
+  text-shadow: 0 1px 8px rgba(20, 14, 8, 0.6);
+}

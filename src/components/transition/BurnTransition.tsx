@@ -21,6 +21,7 @@ const PAINTING_B = "/scenes/concevoir/corot-san-bartolomeo.webp";
  */
 export function BurnTransition() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const titleRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -88,7 +89,19 @@ export function BurnTransition() {
     // le feu se poursuit pendant que la scène II monte sous le voile ; il s'achève
     // à l'instant où elle se fixe — même tableau, même cadrage : relais invisible
     const opener = document.querySelector<HTMLElement>("#concevoir [data-opener]");
+    // le grand titre de la scène II monte du bas pendant que la brèche s'ouvre
+    const title = titleRef.current;
+    const src = document.querySelector<HTMLElement>("#concevoir .opener__title");
+    if (title && src) {
+      title.textContent = src.getAttribute("aria-label") ?? "";
+      title.style.setProperty("--len", src.style.getPropertyValue("--len"));
+    }
     const sync = () => {
+      if (title) {
+        const tp = gsap.utils.clamp(0, 1, (state.p - 0.4) / 0.6);
+        title.style.visibility = state.p > 0.4 && state.p < 1 ? "visible" : "hidden";
+        gsap.set(title, { y: (1 - gsap.parseEase("power3.out")(tp)) * window.innerHeight * 0.4, opacity: Math.min(1, tp * 3) });
+      }
       // caméra : la scène II, vue de très près dans la brèche, se pose à son cadrage
       state.zoom = 1 + 0.4 * (1 - gsap.parseEase("power2.out")(state.p));
       live = state.p > 0 && state.p < 1;
@@ -135,5 +148,10 @@ export function BurnTransition() {
     };
   }, []);
 
-  return <canvas ref={ref} className="burn" aria-hidden="true" />;
+  return (
+    <>
+      <canvas ref={ref} className="burn" aria-hidden="true" />
+      <p ref={titleRef} className="opener__title burn-title" aria-hidden="true" />
+    </>
+  );
 }

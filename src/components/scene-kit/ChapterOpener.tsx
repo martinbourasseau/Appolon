@@ -89,6 +89,16 @@ export function ChapterOpener({ scene }: { scene: Scene }) {
             </span>
           ))}
         </h2>
+        {/* Le chapeau s'élève sur le tableau quand le titre est monté (comme un éditorial) */}
+        {scene.lead && scene.id !== "contact" ? (
+          <p className="opener__lead" data-opener-lead>
+            <span className="lead__drop" aria-hidden="true">
+              {scene.lead.charAt(0)}
+            </span>
+            <span className="sr-only">{scene.lead.charAt(0)}</span>
+            {scene.lead.slice(1)}
+          </p>
+        ) : null}
         {front.map((l, i) => (
           <SceneLayer key={i} layer={l} inOpener sizes="50vw" />
         ))}

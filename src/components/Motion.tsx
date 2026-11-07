@@ -189,7 +189,20 @@ export function Motion() {
           tl.fromTo(light, { opacity: 0, xPercent: -60 }, { opacity: 0.85, xPercent: 0, duration: 0.25, ease: "sine.in" }, 0.12).to(light, { opacity: 0, xPercent: 60, duration: 0.3, ease: "sine.out" }, 0.37);
         }
 
-        tl.fromTo(q(".opener__title .ch"), { yPercent: 105, opacity: 0, rotate: 4 }, { yPercent: 0, opacity: 1, rotate: 0, stagger: 0.025, duration: 0.3, ease: EASE_OUT }, 0.32)
+        /* Typographie, d'après la référence : le grand titre naît au pied du tableau,
+         * puis monte à travers l'image (plus vite que le décor) et laisse la place
+         * au chapeau, qui s'élève à son tour sur le tableau. */
+        const tStart = burnIn ? 0.12 : 0.45;
+        if (burnIn) gsap.set(q(".opener__title .ch"), { yPercent: 0, opacity: 1 });
+        else tl.fromTo(q(".opener__title .ch"), { yPercent: 105, opacity: 0, rotate: 4 }, { yPercent: 0, opacity: 1, rotate: 0, stagger: 0.025, duration: 0.3, ease: EASE_OUT }, 0.32);
+        tl.to(q(".opener__title"), { y: () => -window.innerHeight * (desktop ? 0.5 : 0.42), duration: 0.5, ease: "power1.in" }, tStart);
+        const lead = q("[data-opener-lead]");
+        if (lead.length) {
+          tl.fromTo(lead, { y: () => window.innerHeight * 0.22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.24, ease: EASE_OUT }, tStart + 0.18);
+          // petit écran : décors et crédit s'effacent pour laisser lire le chapeau
+          if (!desktop) tl.to(q(".layer--front, .opener__credit"), { opacity: 0.2, duration: 0.15 }, tStart + 0.14);
+        }
+        tl
           .fromTo(q(".opener__kicker"), { opacity: 0, y: 16, letterSpacing: "0.5em" }, { opacity: 1, y: 0, letterSpacing: "0.26em", duration: 0.25 }, 0.42)
           .to(lines, { strokeDashoffset: 0, stagger: 0.03, duration: 0.35 }, 0.55);
 
@@ -211,7 +224,7 @@ export function Motion() {
             .timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: body, start: "top bottom", end: "top 15%", scrub: 0.6 } })
             .to(q("[data-opener-shade]"), { opacity: 1 }, 0)
             .to(q(".opener__arch"), { scale: 0.94, yPercent: -6 * k, transformOrigin: "50% 0%" }, 0)
-            .to(q(".opener__title, .opener__kicker"), { yPercent: -40 * k, opacity: 0 }, 0);
+            .to(q(".opener__title, .opener__kicker, [data-opener-lead]"), { yPercent: -40 * k, opacity: 0 }, 0);
         }
       });
 

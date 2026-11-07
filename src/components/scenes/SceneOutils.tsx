@@ -3,9 +3,9 @@ import type { Scene } from "@/content/scenes";
 import { orders, technologies } from "@/content/technologies";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
 import { SceneDecor } from "@/components/scene-kit/SceneLayer";
-import { Lead } from "@/components/scene-kit/Editorial";
 import { ProvisoireTag } from "@/components/scene-kit/Provisoire";
 import { DeskScene } from "@/components/desk/DeskScene";
+import { WordCloud } from "@/components/scene-kit/WordCloud";
 
 /**
  * SCÈNE IV — Les outils.
@@ -20,9 +20,14 @@ export function SceneOutils({ scene }: { scene: Scene }) {
       <ChapterOpener scene={scene} />
       <div className="scene__body">
         <SceneDecor items={scene.decor} />
-        {scene.lead ? <Lead text={scene.lead} /> : null}
 
         <DeskScene />
+
+        <WordCloud
+          words={technologies.map((t) => t.name)}
+          craft={["grille", "typographie", "palette", "mouvement", "accessibilité", "performance", "référencement", "maquette", "responsive", "hébergement"]}
+          label="Les outils et les gestes du métier"
+        />
 
         <div className="ordres">
           <div className="ordres__colonnes" data-depth="0.15">

@@ -3,7 +3,7 @@ import type { Scene } from "@/content/scenes";
 import { StarField } from "@/components/scene-kit/StarField";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
 import { SceneDecor } from "@/components/scene-kit/SceneLayer";
-import { Folios, Lead } from "@/components/scene-kit/Editorial";
+import { Folios } from "@/components/scene-kit/Editorial";
 
 /**
  * SCÈNE III — L'ingénierie (nuit).
@@ -44,7 +44,6 @@ export function SceneIngenierie({ scene }: { scene: Scene }) {
           <StarField density={0.00012} />
         </div>
         <SceneDecor items={scene.decor} />
-        {scene.lead ? <Lead text={scene.lead} /> : null}
 
         <div className="engine">
           <figure className="tablet" data-code>

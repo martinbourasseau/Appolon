@@ -117,6 +117,9 @@ export function DeskScene() {
   return (
     <div ref={root} className={`desk desk--${state}`} data-desk>
       <div className="desk__stage">
+        {/* l'atelier est posé dans le paysage du chapitre : les objets entrent dans le tableau */}
+        <Image src="/scenes/outils/valenciennes-villa-farnese.webp" alt="" fill sizes="100vw" className="desk__backdrop" aria-hidden="true" />
+        <div className="desk__veil" aria-hidden="true" />
         <p className="desk__kicker">L&apos;atelier</p>
         <canvas ref={canvasRef} className="desk__canvas" aria-hidden="true" />
         {state === "static" ? (

@@ -25,6 +25,17 @@ export function IntroRays() {
         <circle cx="500" cy="500" r="58" pathLength={1} data-ray />
         <circle cx="500" cy="500" r="40" pathLength={1} data-ray opacity="0.6" />
         <path d="M 20 500 A 480 480 0 0 1 980 500" pathLength={1} data-ray opacity="0.45" />
+        {/* tracé régulateur au compas, comme une épure : carré, section d'or, diagonales, spirale */}
+        <g opacity="0.34">
+          <rect x="309" y="309" width="382" height="382" pathLength={1} data-ray />
+          <line x1="545" y1="309" x2="545" y2="691" pathLength={1} data-ray />
+          <line x1="545" y1="545" x2="691" y2="545" pathLength={1} data-ray />
+          <line x1="0" y1="0" x2="1000" y2="1000" pathLength={1} data-ray />
+          <line x1="1000" y1="0" x2="0" y2="1000" pathLength={1} data-ray />
+          <path d="M 309 691 A 236 236 0 0 1 545 455 A 146 146 0 0 1 691 545 A 90 90 0 0 1 601 635" pathLength={1} data-ray />
+          <line x1="0" y1="309" x2="1000" y2="309" pathLength={1} data-ray />
+          <line x1="0" y1="691" x2="1000" y2="691" pathLength={1} data-ray />
+        </g>
         {rays.map((r, i) => (
           <line
             key={i}
