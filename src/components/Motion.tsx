@@ -91,9 +91,13 @@ export function Motion() {
           .to(q("[data-hero-statue]"), { scale: 1 + 0.08 * k, yPercent: -3 * k }, 0)
           .to(q(".hero__cue"), { opacity: 0, duration: 0.1 }, 0)
           .fromTo(q("[data-hero-copy]"), { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.25 }, 0.3)
-          .to(q("[data-hero-copy]"), { opacity: 0, y: -30, duration: 0.2 }, 0.8)
-          // transition par la lumière vers la scène II
-          .fromTo(q("[data-hero-flare]"), { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.in" }, 0.8);
+          .to(q("[data-hero-copy]"), { opacity: 0, y: -30, duration: 0.12 }, 0.5);
+        // sans le passage par le feu (WebGL indisponible) : sortie par la lumière du soleil
+        if (!root.dataset.burn)
+          gsap.fromTo(q("[data-hero-flare]"), { opacity: 0, scale: 0.3 }, {
+            opacity: 1, scale: 1, ease: "power2.in",
+            scrollTrigger: { trigger: hero, start: "80% bottom", end: "bottom bottom", scrub: 0.6 },
+          });
       }
 
       /* ── OUVERTURES : chaque scène a sa propre révélation ──────────
@@ -107,7 +111,9 @@ export function Motion() {
        * plans découpés en profondeur, et sortie sous la page qui monte. */
       gsap.utils.toArray<HTMLElement>("[data-opener]").forEach((op) => {
         const q = gsap.utils.selector(op);
-        const kind = op.dataset.revealKind ?? "arch";
+        // la scène II arrive par le feu (BurnTransition) : son tableau est déjà plein écran
+        const burnIn = Boolean(root.dataset.burn) && op.closest("#concevoir") !== null;
+        const kind = burnIn ? "none" : op.dataset.revealKind ?? "arch";
         const lines = Array.from(op.querySelectorAll<SVGGeometryElement>(".opener__canon [data-draw]"));
         prepareDraw(lines);
         const cam = op.dataset.cam ? (JSON.parse(op.dataset.cam) as { from: Pose; to: Pose }) : null;
@@ -117,7 +123,7 @@ export function Motion() {
 
         const tl = gsap.timeline({
           defaults: { ease: "none" },
-          scrollTrigger: { trigger: op, start: "top 85%", end: "bottom bottom", scrub: 0.6 },
+          scrollTrigger: { trigger: op, start: burnIn ? "top top" : "top 85%", end: "bottom bottom", scrub: 0.6 },
         });
 
         const arch = q("[data-arch]");
@@ -139,6 +145,11 @@ export function Motion() {
             break;
           case "torn":
             tl.fromTo(arch, { clipPath: torn(104) }, { clipPath: torn(-8), ...R, ease: "power2.inOut" }, 0);
+            break;
+          case "none":
+            gsap.set(arch, { clipPath: "none" });
+            // les plans découpés entrent en douceur après le relais
+            tl.fromTo(q("[data-layer-depth]"), { opacity: 0 }, { opacity: 1, duration: 0.25, stagger: 0.04 }, 0.06);
             break;
           case "shutters":
             gsap.set(arch, { clipPath: "none" });
@@ -170,7 +181,9 @@ export function Motion() {
 
         // transition par la lumière : un voile lumineux traverse le tableau pendant qu'il s'ouvre
         const light = q("[data-opener-light]");
-        if (kind === "iris") {
+        if (kind === "none") {
+          // pas de voile lumineux : le feu vient de passer
+        } else if (kind === "iris") {
           tl.fromTo(light, { opacity: 0, scale: 0.4 }, { opacity: 0.75, scale: 1, duration: 0.22, ease: "power2.out" }, 0.08).to(light, { opacity: 0, scale: 1.6, duration: 0.3 }, 0.3);
         } else {
           tl.fromTo(light, { opacity: 0, xPercent: -60 }, { opacity: 0.85, xPercent: 0, duration: 0.25, ease: "sine.in" }, 0.12).to(light, { opacity: 0, xPercent: 60, duration: 0.3, ease: "sine.out" }, 0.37);

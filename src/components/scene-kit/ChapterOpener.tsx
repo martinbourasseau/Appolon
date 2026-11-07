@@ -50,6 +50,8 @@ export function ChapterOpener({ scene }: { scene: Scene }) {
                 fill
                 sizes="(max-width: 768px) 1600px, 100vw"
                 quality={80}
+                // le tableau II prend le relais du feu : il doit être prêt avant
+                loading={scene.id === "concevoir" ? "eager" : "lazy"}
                 style={{ objectPosition: op.position ?? "50% 50%" }}
                 className={dark ? "opener__painting opener__painting--nuit" : "opener__painting"}
               />
@@ -80,7 +82,7 @@ export function ChapterOpener({ scene }: { scene: Scene }) {
           <span className="numeral">{scene.numeral}</span>
           <span>{scene.kicker}</span>
         </p>
-        <h2 className="opener__title" data-title aria-label={scene.title}>
+        <h2 className="opener__title" data-title aria-label={scene.title} style={{ ["--len" as string]: Array.from(scene.title).length }}>
           {Array.from(scene.title).map((ch, i) => (
             <span key={i} className="ch" aria-hidden="true">
               {ch === " " ? " " : ch}

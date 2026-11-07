@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ProvisoireTag } from "@/components/scene-kit/Provisoire";
 import { IntroRays } from "@/components/intro/IntroRays";
+import { BurnTransition } from "@/components/transition/BurnTransition";
 
 /**
  * SCÈNE I — L'apparition.
@@ -89,6 +90,8 @@ export function SceneApparition() {
           <ProvisoireTag note="Soleil et nuages : détourage automatique sur fond blanc" />
         </div>
       </div>
+      {/* Passage I → II : la scène se consume, la caméra entre dans le tableau suivant */}
+      <BurnTransition />
     </section>
   );
 }

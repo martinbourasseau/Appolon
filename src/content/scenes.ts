@@ -41,6 +41,14 @@ export type Layer = {
   desktopOnly?: boolean;
   /** devant le titre (sinon derrière) */
   front?: boolean;
+  /**
+   * Bords où le découpage source est droit (sujet coupé dans le fichier) :
+   * ils sont fondus pour que l'élément paraisse entier, jamais tranché.
+   * Repère de l'image d'origine (avant miroir / retournement).
+   */
+  edges?: ("top" | "bottom" | "left" | "right")[];
+  /** Position et taille sur petit écran (≤ 768 px), dans le même repère */
+  m?: { left?: string; right?: string; top?: string; bottom?: string; width?: string; height?: string };
 };
 
 export type Visual = {
@@ -121,19 +129,19 @@ export const scenes: Scene[] = [
       width: 2560,
       height: 1592,
       position: "50% 62%",
-      reveal: "arch", pan: [12, 78], camera: { from: { scale: 1.25, y: 6 }, to: { scale: 1, y: -3 } },
+      reveal: "arch", pan: [12, 78], camera: { from: { scale: 1 }, to: { scale: 1.1, y: -3 } },
       alt: "Rome, l'île Tibérine et ses ponts sous un ciel de plein jour, peinture de Corot",
       expected: "",
       credit: "Camille Corot, L'île et le pont San Bartolomeo, Rome, 1825-28 — domaine public",
       layers: [
-        { src: "/scenes/concevoir/nuages-dores.webp", w: 735, h: 245, style: { left: "-8%", top: "-4%", width: "62vw" }, depth: 0.3, anim: "drift", feather: true, blend: "screen", opacity: 0.85 },
-        { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { right: "-7%", top: "18%", width: "30vw" }, depth: 0.2, anim: "drift-rev" },
-        { src: "/provisoire/lys.webp", w: 736, h: 825, style: { left: "-5%", bottom: "-10%", width: "28vw" }, depth: -0.25, anim: "sway", front: true },
-        { src: "/provisoire/nuage-grave.webp", w: 579, h: 251, style: { right: "-4%", bottom: "-3%", width: "36vw" }, depth: -0.15, anim: "drift", front: true },
+        { src: "/scenes/concevoir/nuages-dores.webp", w: 735, h: 245, style: { left: "5vw", top: "3svh", width: "46vw" }, m: { left: "5vw", top: "10svh", width: "80vw" }, depth: 0.3, anim: "drift", feather: true, blend: "screen", opacity: 0.85 },
+        { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { right: "3vw", top: "17svh", width: "22vw" }, m: { right: "4vw", top: "24svh", width: "38vw" }, depth: 0.2, anim: "drift-rev" },
+        { src: "/provisoire/lys.webp", w: 736, h: 825, edges: ["right", "bottom"], style: { left: "2.5vw", bottom: "5svh", width: "14vw" }, m: { left: "4vw", bottom: "19svh", width: "30vw" }, depth: -0.25, anim: "sway", front: true },
+        { src: "/provisoire/nuage-grave.webp", w: 579, h: 251, style: { right: "2.5vw", bottom: "6svh", width: "17vw" }, m: { right: "4vw", bottom: "21svh", width: "34vw" }, depth: -0.15, anim: "drift", front: true },
       ],
     },
     decor: [
-      { src: "/provisoire/nuage-grave.webp", w: 579, h: 251, style: { right: "-6%", top: "38%", width: "26vw" }, depth: 0.2, anim: "drift" },
+      { src: "/provisoire/nuage-grave.webp", w: 579, h: 251, desktopOnly: true, style: { right: "2vw", top: "38%", width: "15vw" }, depth: 0.2, anim: "drift" },
     ],
     tone: "jour",
   },
@@ -161,13 +169,13 @@ export const scenes: Scene[] = [
       credit: "Aquarelle nocturne aux constellations — fournie par Martin",
       layers: [
         { src: "/scenes/ingenierie/nuit-ciel-nebuleuse.webp", w: 638, h: 1134, style: {}, cover: true, blend: "screen", opacity: 0.55, anim: "breathe", depth: 0.2 },
-        { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, style: { right: "-10%", top: "-16%", width: "44vw" }, turn: true, depth: 0.35, anim: "drift-rev" },
-        { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, style: { left: "-22%", bottom: "-34%", width: "46vw" }, depth: -0.3, anim: "float", front: true },
+        { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, edges: ["bottom", "left"], style: { right: "3vw", top: "9svh", width: "24vw" }, m: { right: "3vw", top: "26svh", width: "42vw" }, turn: true, depth: 0.35, anim: "drift-rev" },
+        { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, edges: ["bottom", "left"], style: { left: "2.5vw", bottom: "5svh", width: "19vw" }, m: { left: "3vw", bottom: "19svh", width: "36vw" }, depth: -0.3, anim: "float", front: true },
       ],
     },
     decor: [
-      { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, style: { left: "-14%", top: "30%", width: "34vw" }, depth: 0.25, anim: "float", opacity: 0.8, fade: "bottom" },
-      { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, style: { right: "-16%", top: "64%", width: "38vw" }, flip: true, depth: -0.2, anim: "drift-rev", opacity: 0.7, fade: "bottom" },
+      { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, edges: ["bottom", "left"], desktopOnly: true, style: { left: "1.5vw", top: "30%", width: "17vw" }, depth: 0.25, anim: "float", opacity: 0.8, fade: "bottom" },
+      { src: "/scenes/ingenierie/nuit-nuage-etoile.webp", w: 734, h: 734, edges: ["bottom", "left"], desktopOnly: true, style: { right: "1.5vw", top: "64%", width: "17vw" }, flip: true, depth: -0.2, anim: "drift-rev", opacity: 0.7, fade: "bottom" },
     ],
     tone: "nuit",
   },
@@ -188,13 +196,13 @@ export const scenes: Scene[] = [
       expected: "",
       credit: "Pierre-Henri de Valenciennes, À la villa Farnèse, les ruines, v. 1780 — Louvre, domaine public",
       layers: [
-        { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { left: "30%", top: "3%", width: "34vw" }, depth: 0.3, anim: "drift" },
-        { src: "/scenes/outils/colonnade.webp", w: 668, h: 1192, style: { left: "-9%", bottom: "-10%", height: "92%" }, depth: -0.3, front: true },
-        { src: "/scenes/outils/rideau-colonne.webp", w: 249, h: 887, style: { right: "-1%", bottom: "-2%", height: "100%" }, depth: -0.2, anim: "sway", front: true, desktopOnly: true },
+        { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { left: "34vw", top: "5svh", width: "26vw" }, m: { left: "20vw", top: "22svh", width: "56vw" }, depth: 0.3, anim: "drift" },
+        { src: "/scenes/outils/colonnade.webp", w: 668, h: 1192, edges: ["top", "left"], style: { left: "2.5vw", bottom: "4svh", height: "56svh" }, m: { left: "4vw", bottom: "19svh", height: "30svh" }, depth: -0.3, front: true },
+        { src: "/scenes/outils/rideau-colonne.webp", w: 249, h: 887, style: { right: "2.5vw", bottom: "4svh", height: "70svh" }, depth: -0.2, anim: "sway", front: true, desktopOnly: true },
       ],
     },
     decor: [
-      { src: "/provisoire/lys.webp", w: 736, h: 825, style: { right: "-6%", bottom: "4%", width: "22vw" }, depth: -0.15, anim: "sway", desktopOnly: true },
+      { src: "/provisoire/lys.webp", w: 736, h: 825, edges: ["right", "bottom"], style: { right: "2vw", bottom: "6%", width: "13vw" }, depth: -0.15, anim: "sway", desktopOnly: true },
     ],
     tone: "jour",
   },
@@ -215,8 +223,8 @@ export const scenes: Scene[] = [
       expected: "",
       credit: "C. W. Eckersberg, Vue à travers trois arches du Colisée, 1815 — domaine public",
       layers: [
-        { src: "/provisoire/nuage-grave.webp", w: 579, h: 251, style: { left: "-6%", top: "8%", width: "30vw" }, depth: 0.25, anim: "drift" },
-        { src: "/scenes/realisations/globe.webp", w: 560, h: 854, style: { right: "1%", bottom: "-8%", height: "44%" }, depth: -0.3, anim: "float", front: true },
+        { src: "/provisoire/nuage-grave.webp", w: 579, h: 251, style: { left: "3vw", top: "10svh", width: "22vw" }, m: { left: "4vw", top: "22svh", width: "44vw" }, depth: 0.25, anim: "drift" },
+        { src: "/scenes/realisations/globe.webp", w: 560, h: 854, edges: ["bottom"], style: { right: "3vw", bottom: "5svh", height: "34svh" }, m: { right: "5vw", bottom: "19svh", height: "21svh" }, depth: -0.3, anim: "float", front: true },
       ],
     },
     tone: "aube",
@@ -245,13 +253,13 @@ export const scenes: Scene[] = [
       expected: "",
       credit: "Camille Corot, Civita Castellana, rochers dominant la vallée boisée, 1826-27 — domaine public",
       layers: [
-        { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { right: "8%", top: "4%", width: "28vw" }, depth: 0.3, anim: "drift-rev" },
-        { src: "/scenes/sur-mesure/ruines-arche.webp", w: 498, h: 797, style: { right: "-7%", bottom: "-10%", height: "70%" }, depth: -0.3, anim: "breathe", front: true },
-        { src: "/provisoire/lys.webp", w: 736, h: 825, style: { left: "-7%", bottom: "-12%", width: "26vw" }, depth: -0.2, anim: "sway", front: true, desktopOnly: true },
+        { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { right: "8vw", top: "6svh", width: "22vw" }, m: { right: "5vw", top: "22svh", width: "46vw" }, depth: 0.3, anim: "drift-rev" },
+        { src: "/scenes/sur-mesure/ruines-arche.webp", w: 498, h: 797, edges: ["bottom", "left", "right"], style: { right: "2.5vw", bottom: "4svh", height: "46svh" }, m: { right: "4vw", bottom: "19svh", height: "26svh" }, depth: -0.3, anim: "breathe", front: true },
+        { src: "/provisoire/lys.webp", w: 736, h: 825, edges: ["right", "bottom"], style: { left: "2.5vw", bottom: "5svh", width: "13vw" }, depth: -0.2, anim: "sway", front: true, desktopOnly: true },
       ],
     },
     decor: [
-      { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, style: { left: "-8%", top: "12%", width: "26vw" }, depth: 0.2, anim: "drift" },
+      { src: "/provisoire/nuage-peint.webp", w: 640, h: 344, desktopOnly: true, style: { left: "2vw", top: "12%", width: "15vw" }, depth: 0.2, anim: "drift" },
     ],
     tone: "jour",
   },
@@ -272,9 +280,9 @@ export const scenes: Scene[] = [
       expected: "",
       credit: "Arkhip Kuindzhi, Coucher de soleil rouge sur le Dniepr, 1905-08 — Metropolitan Museum, domaine public",
       layers: [
-        { src: "/provisoire/apollon-statue.webp", w: 678, h: 1350, style: { left: "50%", bottom: "0", height: "72%", translate: "-50% 0" }, silhouette: true, depth: 0.1 },
-        { src: "/scenes/contact/pivoines.webp", w: 631, h: 928, style: { left: "-5%", bottom: "-14%", height: "64%" }, depth: -0.3, anim: "sway", front: true },
-        { src: "/provisoire/lyre.webp", w: 442, h: 602, style: { right: "6%", bottom: "34%", height: "26%" }, depth: -0.2, anim: "float", front: true, desktopOnly: true },
+        { src: "/provisoire/apollon-statue.webp", w: 678, h: 1350, style: { left: "50%", bottom: "2svh", height: "68%", translate: "-50% 0" }, m: { bottom: "2svh", height: "60%" }, silhouette: true, depth: 0.1 },
+        { src: "/scenes/contact/pivoines.webp", w: 631, h: 928, edges: ["right", "bottom"], style: { left: "2.5vw", bottom: "5svh", height: "33svh" }, m: { left: "4vw", bottom: "20svh", height: "21svh" }, depth: -0.3, anim: "sway", front: true },
+        { src: "/provisoire/lyre.webp", w: 442, h: 602, edges: ["bottom"], style: { right: "4vw", bottom: "30svh", height: "24svh" }, depth: -0.2, anim: "float", front: true, desktopOnly: true },
       ],
     },
     tone: "aube",

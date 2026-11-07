@@ -26,6 +26,8 @@ export type DeskOptions = {
 export type DeskHandle = {
   setProgress: (p: number) => void;
   setPointer: (x: number, y: number) => void;
+  /** glisser horizontalement : tourner autour de la table (radians) */
+  rotate: (dx: number) => void;
   setVisible: (v: boolean) => void;
   ready: Promise<void>;
   dispose: () => void;
@@ -187,6 +189,11 @@ export function createDesk(canvas: HTMLCanvasElement, opts: DeskOptions): DeskHa
   screenMesh.position.set(0, 0.51, 0.0185);
   hinge.add(screenMesh);
 
+  // l'écran éclaire la table quand le site s'allume
+  const screenLight = new THREE.PointLight(0xffe2b8, 0, 3.2, 1.6);
+  screenLight.position.set(0, 0.55, 0.45);
+  hinge.add(screenLight);
+
   const painting = new Image();
   painting.decoding = "async";
   const paintingReady = new Promise<void>((res) => {
@@ -288,6 +295,38 @@ export function createDesk(canvas: HTMLCanvasElement, opts: DeskOptions): DeskHa
     screen.tex.needsUpdate = true;
   };
 
+  /* ── le tableau du site sort de l'écran (2,5D : un plan qui se détache) ── */
+  const popCanvas = canvasTex(512, 300, () => undefined);
+  track(popCanvas.tex);
+  const pop = new THREE.Mesh(
+    track(new THREE.PlaneGeometry(0.98, 0.574)),
+    track(new THREE.MeshBasicMaterial({ map: popCanvas.tex, transparent: true, toneMapped: false, opacity: 0 })),
+  );
+  pop.renderOrder = 3;
+  hinge.add(pop);
+  const drawPop = () => {
+    const c = popCanvas.ctx;
+    const W = 512;
+    const H = 300;
+    c.clearRect(0, 0, W, H);
+    if (!painting.naturalWidth) return;
+    c.save();
+    c.beginPath();
+    c.moveTo(0, H);
+    c.lineTo(0, H * 0.48);
+    c.ellipse(W / 2, H * 0.48, W / 2, H * 0.48, 0, Math.PI, 0);
+    c.lineTo(W, H);
+    c.closePath();
+    c.clip();
+    const r = painting.naturalWidth / painting.naturalHeight;
+    c.drawImage(painting, 0, H - W / r + 10, W, W / r);
+    c.restore();
+    c.strokeStyle = "rgba(220,189,124,0.9)";
+    c.lineWidth = 4;
+    c.stroke();
+    popCanvas.tex.needsUpdate = true;
+  };
+
   /* ── fenêtres d'interface flottantes ── */
   type Panel = { mesh: THREE.Mesh; base: THREE.Vector3; phase: number; at: number };
   const panels: Panel[] = [];
@@ -364,6 +403,16 @@ export function createDesk(canvas: HTMLCanvasElement, opts: DeskOptions): DeskHa
     c.fillRect(40, 190, (W - 80) * 0.7, 10);
   }, [1.35, 1.95, 0.85], -0.3, 0.62);
 
+  /* fils dorés : chaque fenêtre est reliée à l'écran (le système de design alimente le site) */
+  const wireMat = track(new THREE.LineBasicMaterial({ color: 0xc89b4a, transparent: true, opacity: 0 }));
+  const wires = panels.map(() => {
+    const g = track(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]));
+    const l = new THREE.Line(g, wireMat);
+    scene.add(l);
+    return l;
+  });
+  const screenAnchor = new THREE.Vector3();
+
   /* ── sphère armillaire ── */
   const armillary = new THREE.Group();
   armillary.position.set(1.45, 1.58, -0.35);
@@ -399,6 +448,8 @@ export function createDesk(canvas: HTMLCanvasElement, opts: DeskOptions): DeskHa
   let progress = 0;
   const pointer = new THREE.Vector2();
   const pointerSmooth = new THREE.Vector2();
+  let drag = 0;
+  let dragTarget = 0;
   let visible = false;
   let raf = 0;
   let disposed = false;
@@ -425,7 +476,9 @@ export function createDesk(canvas: HTMLCanvasElement, opts: DeskOptions): DeskHa
     drawScreen(THREE.MathUtils.clamp((p - 0.12) / 0.8, 0, 1));
     // caméra : travelling en arc, puis approche de l'écran
     const narrow = camera.aspect < 0.9;
-    const az = (narrow ? THREE.MathUtils.lerp(-0.42, 0.12, p) : THREE.MathUtils.lerp(-0.62, 0.32, p)) + pointerSmooth.x * 0.06;
+    drag += (dragTarget - drag) * 0.08;
+    dragTarget *= 0.985; // revient doucement au cadrage prévu
+    const az = drag + (narrow ? THREE.MathUtils.lerp(-0.42, 0.12, p) : THREE.MathUtils.lerp(-0.62, 0.32, p)) + pointerSmooth.x * 0.06;
     const el = THREE.MathUtils.lerp(0.5, 0.28, p) + pointerSmooth.y * 0.03;
     const dist = THREE.MathUtils.lerp(narrow ? 9.2 : 8.2, narrow ? 6.4 : 5.6, THREE.MathUtils.smoothstep(p, 0.1, 0.9));
     camera.position.set(Math.sin(az) * dist * Math.cos(el), 2.0 + Math.sin(el) * dist, Math.cos(az) * dist * Math.cos(el));
@@ -436,7 +489,7 @@ export function createDesk(canvas: HTMLCanvasElement, opts: DeskOptions): DeskHa
     for (const P of panels) {
       const a = THREE.MathUtils.smoothstep(p, P.at, P.at + 0.18);
       // petit écran : les fenêtres se resserrent au-dessus de l'ordinateur
-      const nx = narrow ? P.base.x * 0.42 : P.base.x;
+      const nx = narrow ? P.base.x * 0.3 : P.base.x;
       const ny = narrow ? P.base.y + 0.55 + Math.abs(P.base.x) * 0.12 : P.base.y;
       P.mesh.position.set(nx, ny + Math.sin(t * 0.9 + P.phase) * 0.05 - (1 - a) * 0.4, P.base.z);
       const m = P.mesh.material as THREE.MeshBasicMaterial;
@@ -444,6 +497,26 @@ export function createDesk(canvas: HTMLCanvasElement, opts: DeskOptions): DeskHa
       P.mesh.visible = a > 0.01;
       P.mesh.scale.setScalar((0.85 + a * 0.15) * (narrow ? 0.78 : 1));
     }
+    // l'écran s'allume, éclaire la table ; le tableau se détache de l'écran
+    const lit = THREE.MathUtils.smoothstep(p, 0.3, 0.6);
+    screenLight.intensity = lit * 1.6;
+    const out = THREE.MathUtils.smoothstep(p, 0.62, 0.86);
+    pop.position.set(0, 0.6 + out * 0.08, 0.02 + out * 0.42);
+    pop.rotation.x = -0.12 * out;
+    pop.scale.setScalar(0.7 + out * 0.32);
+    (pop.material as THREE.MeshBasicMaterial).opacity = out;
+    pop.visible = out > 0.01;
+    // fils dorés
+    screenMesh.getWorldPosition(screenAnchor);
+    wireMat.opacity = 0.7 * THREE.MathUtils.smoothstep(p, 0.35, 0.55);
+    panels.forEach((P, i) => {
+      const g = wires[i].geometry as THREE.BufferGeometry;
+      const pos = g.attributes.position as THREE.BufferAttribute;
+      pos.setXYZ(0, P.mesh.position.x, P.mesh.position.y - 0.18, P.mesh.position.z);
+      pos.setXYZ(1, screenAnchor.x + (P.base.x > 0 ? 0.6 : -0.6), screenAnchor.y + 0.2, screenAnchor.z);
+      pos.needsUpdate = true;
+      wires[i].visible = P.mesh.visible;
+    });
     rings.rotation.y = t * 0.35 + p * 2;
     rings.rotation.z = Math.sin(t * 0.4) * 0.15;
     renderer.render(scene, camera);
@@ -458,6 +531,7 @@ export function createDesk(canvas: HTMLCanvasElement, opts: DeskOptions): DeskHa
 
   const ready = Promise.all([paintingReady, document.fonts?.ready ?? Promise.resolve()]).then(() => {
     drawnStep = -1;
+    drawPop();
     render(performance.now());
     raf = requestAnimationFrame(loop);
   });
@@ -466,6 +540,7 @@ export function createDesk(canvas: HTMLCanvasElement, opts: DeskOptions): DeskHa
     ready,
     setProgress: (p) => (progress = p),
     setPointer: (x, y) => pointer.set(x, y),
+    rotate: (dx) => (dragTarget = THREE.MathUtils.clamp(dragTarget + dx, -0.9, 0.9)),
     setVisible: (v) => (visible = v),
     dispose: () => {
       disposed = true;

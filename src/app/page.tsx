@@ -19,7 +19,7 @@ const byId = (id: string) => {
   return s;
 };
 
-const INTRO_BOOT = `(function(){try{var m=new URLSearchParams(location.search).get("motion");if(m==="reduced")return;if(m!=="full"&&m!=="lite"&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;if(!("WebGL2RenderingContext" in window))return;document.documentElement.dataset.intro="pending";}catch(e){}})();`;
+const INTRO_BOOT = `(function(){try{var m=new URLSearchParams(location.search).get("motion");if(m==="reduced")return;if(m!=="full"&&m!=="lite"&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;if(!("WebGL2RenderingContext" in window))return;document.documentElement.dataset.intro="pending";document.documentElement.dataset.burn="1";}catch(e){}})();`;
 
 /** La page : un seul récit en sept scènes */
 export default function Page() {

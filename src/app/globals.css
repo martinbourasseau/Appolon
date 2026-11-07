@@ -1757,28 +1757,6 @@ html[data-intro="gl"] .bandeau-provisoire {
   font-weight: 600;
 }
 
-/* mobile : les plans découpés restent des ornements de coin, jamais devant le titre */
-@media (max-width: 768px) {
-  .opener .layer--front {
-    scale: 0.66;
-  }
-  .opener .layer--front:not([style*="left"]) {
-    transform-origin: 100% 100%;
-  }
-  .opener .layer--front[style*="left"] {
-    transform-origin: 0 100%;
-  }
-  .opener__kicker {
-    z-index: 5;
-  }
-  .opener .layer:not(.layer--front):not(.layer--cover) {
-    max-width: 62vw;
-  }
-  .opener .layer--silhouette {
-    max-height: 52svh;
-    max-width: none;
-  }
-}
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2151,7 +2129,12 @@ html[data-motion="reduced"] .hero__flare {
   position: absolute;
   z-index: 2;
   left: calc(var(--gutter) + 9.5rem);
-  bottom: 7svh;
+  right: var(--gutter);
+  bottom: 3svh;
+  grid-template-columns: repeat(4, 1fr);
+  width: auto !important;
+  max-width: 64rem;
+  margin-inline: auto !important;
   padding: 1.2rem 1.4rem !important;
   border-radius: 18px;
   background: rgba(251, 247, 239, 0.78);
@@ -2211,6 +2194,7 @@ html[data-motion="reduced"] .hero__flare {
     background: none;
     backdrop-filter: none;
     box-shadow: none;
+    grid-template-columns: 1fr;
   }
   .desk--live .desk__step:not([data-active]) {
     display: none;
@@ -2227,14 +2211,61 @@ html[data-motion="reduced"] .hero__flare {
 .opener__title {
   z-index: 5;
 }
+
+
+/* ═══ PASSAGE I → II PAR LE FEU ═══ */
+.burn {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  visibility: hidden;
+}
+html[data-burn] .scene--apparition {
+  height: 400svh;
+}
+@media (max-width: 768px) {
+  html[data-burn] .scene--apparition {
+    height: 340svh;
+  }
+}
+
+/* ═══ COMPOSITIONS : titre dimensionné selon sa longueur, décors en marge ═══
+ * Le titre occupe au plus ~62 % de la largeur (88 % sur mobile) ; les plans
+ * découpés vivent dans les marges restantes, entiers, à distance des bords. */
+.opener__title {
+  font-size: min(16rem, calc(140vw / var(--len, 9)), 14.5vw);
+}
 @media (min-width: 769px) and (max-width: 1180px) {
-  .opener .layer--front {
-    scale: 0.78;
+  .opener__title {
+    font-size: min(calc(122vw / var(--len, 9)), 13.5vw);
   }
-  .opener .layer--front:not([style*="left"]) {
-    transform-origin: 100% 100%;
+}
+@media (max-width: 768px) {
+  .opener__title {
+    font-size: min(calc(196vw / var(--len, 9)), 21vw);
   }
-  .opener .layer--front[style*="left"] {
-    transform-origin: 0 100%;
+  .layer.layer--m-left { left: var(--m-left) !important; }
+  .layer.layer--m-right { right: var(--m-right) !important; }
+  .layer.layer--m-top { top: var(--m-top) !important; }
+  .layer.layer--m-bottom { bottom: var(--m-bottom) !important; }
+  .layer.layer--m-width { width: var(--m-width) !important; }
+  .layer.layer--m-height { height: var(--m-height) !important; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .desk--live .desk__canvas {
+    cursor: grab;
+  }
+  .desk--live .desk__canvas:active {
+    cursor: grabbing;
+  }
+  .desk--live .desk__kicker::after {
+    content: " · glisser pour tourner autour";
+    letter-spacing: 0.14em;
+    text-transform: none;
+    color: var(--encre-2);
   }
 }

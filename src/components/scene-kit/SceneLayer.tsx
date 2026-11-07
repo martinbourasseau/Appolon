@@ -11,8 +11,10 @@ import type { Layer } from "@/content/scenes";
  *   .layer__img   petite animation continue (CSS : flotter, se balancer…)
  */
 export function SceneLayer({ layer, inOpener = false, sizes = "40vw" }: { layer: Layer; inOpener?: boolean; sizes?: string }) {
+  const mobile = Object.entries(layer.m ?? {}) as [string, string][];
   const style: CSSProperties = {
     ...(layer.style as CSSProperties),
+    ...Object.fromEntries(mobile.map(([k, v]) => [`--m-${k}`, v])),
     ...(layer.opacity !== undefined ? { opacity: layer.opacity } : null),
     ...(layer.blend ? { mixBlendMode: layer.blend } : null),
   };
@@ -25,6 +27,7 @@ export function SceneLayer({ layer, inOpener = false, sizes = "40vw" }: { layer:
     layer.silhouette ? "layer--silhouette" : "",
     layer.feather ? "layer--feather" : "",
     layer.fade ? `layer--fade-${layer.fade}` : "",
+    ...mobile.map(([k]) => `layer--m-${k}`),
   ]
     .filter(Boolean)
     .join(" ");
@@ -43,10 +46,19 @@ export function SceneLayer({ layer, inOpener = false, sizes = "40vw" }: { layer:
           height={layer.h}
           sizes={layer.cover ? "100vw" : sizes}
           className={`layer__img${layer.anim ? ` anim-${layer.anim}` : ""}`}
+          style={edgeMask(layer.edges)}
         />
       </span>
     </div>
   );
+}
+
+/** Fond les bords droits d'un découpage : l'élément paraît entier, sans tranche */
+function edgeMask(edges?: Layer["edges"]): CSSProperties | undefined {
+  if (!edges?.length) return undefined;
+  const to = { top: "bottom", bottom: "top", left: "right", right: "left" } as const;
+  const g = edges.map((e) => `linear-gradient(to ${to[e]}, transparent 0%, #000 16%)`).join(", ");
+  return { maskImage: g, WebkitMaskImage: g, maskComposite: "intersect", WebkitMaskComposite: "source-in" };
 }
 
 /** Éléments animés posés sur les côtés du contenu d'une scène */

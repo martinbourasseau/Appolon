@@ -42,10 +42,17 @@ export function DeskScene() {
     let desk: DeskHandle | null = null;
     let st: ScrollTrigger | null = null;
     let cancelled = false;
+    let lastX: number | null = null;
     const onPointer = (e: PointerEvent) => {
       const r = el.getBoundingClientRect();
       desk?.setPointer(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1));
+      if (lastX !== null && e.pointerType === "mouse") desk?.rotate(((e.clientX - lastX) / r.width) * 2.4);
+      if (lastX !== null) lastX = e.clientX;
     };
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") lastX = e.clientX;
+    };
+    const onUp = () => (lastX = null);
 
     const start = async () => {
       setState("loading");
@@ -78,6 +85,8 @@ export function DeskScene() {
         desk.setVisible(st.isActive);
         desk.setProgress(st.progress);
         window.addEventListener("pointermove", onPointer, { passive: true });
+        canvas.addEventListener("pointerdown", onDown);
+        window.addEventListener("pointerup", onUp);
       } catch {
         setState("static");
       }
@@ -99,6 +108,8 @@ export function DeskScene() {
       io.disconnect();
       st?.kill();
       window.removeEventListener("pointermove", onPointer);
+      window.removeEventListener("pointerup", onUp);
+      canvas.removeEventListener("pointerdown", onDown);
       desk?.dispose();
     };
   }, []);
