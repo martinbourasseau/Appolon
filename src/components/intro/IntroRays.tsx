@@ -3,7 +3,7 @@
  * Vingt-quatre rayons, deux cercles et l'arc de l'horizon se dessinent
  * pendant le chargement des images (la progression du tracé suit le
  * chargement réel), puis s'effacent quand l'aube révèle le paysage.
- * Position : centrée sur le soleil, par ApolloIntro.
+ * Position : centrée sur le soleil, par MosaicIntro.
  */
 export function IntroRays() {
   const rays = Array.from({ length: 24 }, (_, i) => {

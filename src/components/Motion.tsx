@@ -65,7 +65,7 @@ export function Motion() {
       const hero = document.querySelector<HTMLElement>("[data-hero]");
       if (hero) {
         const q = gsap.utils.selector(hero);
-        // l'entrée est confiée à l'ouverture WebGL (ApolloIntro) quand elle est active
+        // l'entrée est confiée à l'ouverture en mosaïque (MosaicIntro) quand elle est active
         if (!root.dataset.intro) gsap
           .timeline({ defaults: { ease: EASE_OUT } })
           .from(q("[data-hero-sky]"), { opacity: 0, scale: 1.18, duration: 2.2, ease: "power2.out" }, 0)
@@ -73,7 +73,6 @@ export function Motion() {
           .from(q(".hero__word .ch"), { yPercent: 110, opacity: 0, duration: 1.4, stagger: 0.07 }, 0.35)
           .from(q(".hero__kicker"), { opacity: 0, y: 12, duration: 1 }, 0.9)
           .from(q("[data-hero-statue]"), { opacity: 0, yPercent: 6, scale: 1.04, duration: 2, ease: "power2.out" }, 0.5)
-          .from(q("[data-hero-cloud]"), { opacity: 0, duration: 2 }, 0.8)
           .from(q(".hero__cue"), { opacity: 0, duration: 1 }, 1.6);
 
         gsap
@@ -84,8 +83,6 @@ export function Motion() {
           .to(q("[data-hero-sky]"), { scale: 1 - 0.06 * k, yPercent: -6 * k }, 0)
           .to(q("[data-hero-light]"), { opacity: 0.85 }, 0)
           .to(q("[data-hero-sun]"), { yPercent: -45 * k, rotate: 30, scale: 1 + 0.12 * k }, 0)
-          .to(q("[data-hero-cloud='far']"), { xPercent: 35 * k }, 0)
-          .to(q("[data-hero-cloud='near']"), { xPercent: -70 * k, yPercent: -40 * k }, 0)
           .to(q("[data-hero-title]"), { yPercent: -18 * k, scale: 0.94 }, 0)
           .to(q(".hero__word"), { opacity: 0.28, ease: EASE_SOFT }, 0.35)
           .to(q("[data-hero-statue]"), { scale: 1 + 0.08 * k, yPercent: -3 * k }, 0)

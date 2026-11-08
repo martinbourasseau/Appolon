@@ -4,7 +4,7 @@ import { Sommaire } from "@/components/layout/Sommaire";
 import { BandeauProvisoire, Footer } from "@/components/layout/Footer";
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { Motion } from "@/components/Motion";
-import { ApolloIntro } from "@/components/intro/ApolloIntro";
+import { MosaicIntro } from "@/components/intro/MosaicIntro";
 import { SceneApparition } from "@/components/scenes/SceneApparition";
 import { SceneConcevoir } from "@/components/scenes/SceneConcevoir";
 import { SceneIngenierie } from "@/components/scenes/SceneIngenierie";
@@ -41,7 +41,7 @@ export default function Page() {
       <Footer />
       <BandeauProvisoire />
       <SmoothScroll />
-      <ApolloIntro />
+      <MosaicIntro />
       <Motion />
     </>
   );
