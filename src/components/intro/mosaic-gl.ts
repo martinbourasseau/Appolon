@@ -114,7 +114,7 @@ function tesseraShapes(n: number) {
     const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
     const cy = (Math.max(...ys) + Math.min(...ys)) / 2;
     const shape = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2((x - cx) * sx, (y - cy) * sy)));
-    const g = new THREE.ExtrudeGeometry(shape, { depth: 0.22, bevelEnabled: true, bevelThickness: 0.09, bevelSize: 0.06, bevelSegments: 2, curveSegments: 1 });
+    const g = new THREE.ExtrudeGeometry(shape, { depth: 0.22, bevelEnabled: true, bevelThickness: 0.09, bevelSize: 0.06, bevelSegments: 1, curveSegments: 1 });
     g.translate(0, 0, -0.2);
     g.computeVertexNormals();
     out.push(g);
@@ -222,7 +222,8 @@ export class Mosaic {
      * la statue en pierres fines qui épousent ses contours (opus vermiculatum),
      * le soleil en pierres rayonnantes. Longueurs, largeurs, formes et angles
      * varient d'une pierre à l'autre ; les joints restent visibles. */
-    const coarse = Math.max(high ? 14 : 10, Math.round(Math.max(W, H) / (high ? 96 : 70)));
+    // budget mesuré sur un portable réel : 8 600 pierres ≈ 25-38 ms/image → on vise ≈ 6 500
+    const coarse = Math.max(high ? 15 : 10, Math.round(Math.max(W, H) / (high ? 86 : 70)));
     const fine = Math.max(4, Math.round(coarse * 0.45));
     type Cell = { x: number; y: number; L: number; T: number; o: number; kind: "land" | "sun" | "edge" | "body" | "head" };
     const cells: Cell[] = [];
