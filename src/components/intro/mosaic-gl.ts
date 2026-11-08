@@ -150,8 +150,9 @@ export class Mosaic {
     };
 
     // tailles : fond ≈ 1/110 de la largeur (au moins 9 px), statue deux fois plus fine
-    const coarse = Math.max(high ? 11 : 9, Math.round(Math.max(W, H) / (high ? 118 : 78)));
-    const fine = Math.max(5, Math.round(coarse * 0.5));
+    // budget mesuré sur un portable (≈ 30 ms/image à 11 000 pierres) : on vise ≈ 6 000
+    const coarse = Math.max(high ? 13 : 9, Math.round(Math.max(W, H) / (high ? 100 : 74)));
+    const fine = Math.max(5, Math.round(coarse * 0.55));
     const cells: { x: number; y: number; s: number; kind: "land" | "sun" | "edge" | "body" | "head" }[] = [];
     const SB = src.statueBox;
     const inFine = (x: number, y: number) => alpha(sm, x, y) > 0.35 || alpha(sn, x, y) > 0.45;
@@ -179,7 +180,7 @@ export class Mosaic {
     this.count = cells.length;
 
     /* ── géométrie, matière ── */
-    const geo = new RoundedBoxGeometry(1, 1, 0.42, 1, 0.14);
+    const geo = new RoundedBoxGeometry(1, 1, 0.42, 1, 0.14); // 1 segment : arêtes adoucies au moindre coût
     const tex = stoneTexture();
     const mat = new THREE.MeshStandardMaterial({ map: tex, bumpMap: tex, bumpScale: 1.6, roughness: 0.58, metalness: 0 });
     // chaque pierre prend un morceau différent de la texture (veines jamais identiques)
