@@ -225,6 +225,14 @@ export function Motion() {
         }
       });
 
+      /* ── frises gravées : le ciseau trace la grecque au défilement ── */
+      gsap.utils.toArray<SVGPathElement>("[data-frieze]").forEach((path) => {
+        gsap.fromTo(path, { strokeDasharray: 1, strokeDashoffset: 1 }, {
+          strokeDashoffset: 0, ease: "none",
+          scrollTrigger: { trigger: path.closest(".frieze"), start: "top 92%", end: "top 40%", scrub: 0.8 },
+        });
+      });
+
       /* ── III → IV : l'aube ───────────────────────────────────── */
       document.querySelectorAll<HTMLElement>("[data-dawn]").forEach((d) => {
         gsap

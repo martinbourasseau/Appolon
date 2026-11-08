@@ -3,6 +3,7 @@ import type { Scene } from "@/content/scenes";
 import { realisations } from "@/content/realisations";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
 import { SceneDecor } from "@/components/scene-kit/SceneLayer";
+import { Frieze } from "@/components/scene-kit/Frieze";
 import { Provisoire } from "@/components/scene-kit/Provisoire";
 
 /**
@@ -16,6 +17,7 @@ export function SceneRealisations({ scene }: { scene: Scene }) {
     <section id={scene.id} className="scene scene--aube" data-scene aria-label={scene.nav}>
       <ChapterOpener scene={scene} />
       <div className="scene__body scene__body--flush">
+        <Frieze />
         <SceneDecor items={scene.decor} />
       </div>
       <div className="gallery" data-gallery>

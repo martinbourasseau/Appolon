@@ -1,6 +1,7 @@
 import type { Scene } from "@/content/scenes";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
 import { SceneDecor } from "@/components/scene-kit/SceneLayer";
+import { Frieze } from "@/components/scene-kit/Frieze";
 import { CanonLines } from "@/components/scene-kit/CanonLines";
 
 /**
@@ -14,6 +15,7 @@ export function SceneSurMesure({ scene }: { scene: Scene }) {
     <section id={scene.id} className="scene scene--jour" data-scene aria-label={scene.nav}>
       <ChapterOpener scene={scene} />
       <div className="scene__body scene__body--flush">
+        <Frieze />
         <SceneDecor items={scene.decor} />
       </div>
       <div className="steps" data-steps style={{ ["--n" as string]: steps.length }}>

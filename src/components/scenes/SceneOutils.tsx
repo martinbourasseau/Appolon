@@ -3,6 +3,7 @@ import type { Scene } from "@/content/scenes";
 import { orders, technologies } from "@/content/technologies";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
 import { SceneDecor } from "@/components/scene-kit/SceneLayer";
+import { Frieze } from "@/components/scene-kit/Frieze";
 import { ProvisoireTag } from "@/components/scene-kit/Provisoire";
 import { DeskScene } from "@/components/desk/DeskScene";
 import { WordCloud } from "@/components/scene-kit/WordCloud";
@@ -19,13 +20,16 @@ export function SceneOutils({ scene }: { scene: Scene }) {
     <section id={scene.id} className="scene scene--jour" data-scene aria-label={scene.nav}>
       <ChapterOpener scene={scene} />
       <div className="scene__body">
+        <Frieze />
         <SceneDecor items={scene.decor} />
 
         <DeskScene />
 
         <WordCloud
-          words={technologies.map((t) => t.name)}
-          craft={["grille", "typographie", "palette", "mouvement", "accessibilité", "performance", "référencement", "maquette", "responsive", "hébergement"]}
+          items={[
+            ...technologies.map((t) => ({ w: t.name, detail: t.role })),
+            ...["grille", "typographie", "palette", "mouvement", "accessibilité", "performance", "référencement", "maquette", "responsive", "hébergement"].map((w) => ({ w, craft: true })),
+          ]}
           label="Les outils et les gestes du métier"
         />
 

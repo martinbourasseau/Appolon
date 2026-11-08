@@ -4,6 +4,7 @@ import { Provisoire } from "./Provisoire";
 import { CanonLines } from "./CanonLines";
 import { SceneLayer } from "./SceneLayer";
 import { StarField } from "./StarField";
+import { GreekLoader } from "./GreekLoader";
 
 /**
  * Ouverture monumentale d'une scène — un collage en profondeur.
@@ -35,12 +36,7 @@ export function ChapterOpener({ scene }: { scene: Scene }) {
         <div className="opener__arch" data-arch>
           {/* attente réelle : visible tant que le tableau n'est pas décodé (l'image le recouvre) */}
           <div className="opener__loading" aria-hidden="true">
-            <svg viewBox="0 0 48 48" width="44" height="44">
-              <circle cx="24" cy="24" r="6" />
-              {Array.from({ length: 12 }).map((_, i) => (
-                <line key={i} x1="24" y1="5" x2="24" y2="12" transform={`rotate(${i * 30} 24 24)`} style={{ animationDelay: `${i * 0.08}s` }} />
-              ))}
-            </svg>
+            <GreekLoader tone={dark ? "clair" : "or"} />
           </div>
           <div className="opener__img" data-opener-img>
             {op?.src ? (

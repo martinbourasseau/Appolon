@@ -6,6 +6,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motionLevel } from "@/lib/motion-env";
 import type { DeskHandle } from "./desk-gl";
+import { GreekLoader } from "@/components/scene-kit/GreekLoader";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -133,14 +134,8 @@ export function DeskScene() {
           />
         ) : null}
         {state === "loading" ? (
-          <div className="desk__loading" role="status">
-            <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true">
-              <circle cx="24" cy="24" r="6" />
-              {Array.from({ length: 12 }).map((_, i) => (
-                <line key={i} x1="24" y1="5" x2="24" y2="12" transform={`rotate(${i * 30} 24 24)`} style={{ animationDelay: `${i * 0.08}s` }} />
-              ))}
-            </svg>
-            <span>Préparation de l&apos;atelier…</span>
+          <div className="desk__loading">
+            <GreekLoader label="Préparation de l'atelier…" />
           </div>
         ) : null}
         <ol className="desk__steps" aria-label="Les étapes de création d'un site">

@@ -17,7 +17,7 @@
  *     fines) pour la statue et le soleil : le visage reste reconnaissable.
  */
 import * as THREE from "three";
-import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 export type MosaicSource = {
   /** composition de référence (paysage + soleil + statue), en px CSS de la scène */
@@ -34,6 +34,7 @@ export type MosaicSource = {
 export type MosaicOptions = { quality: "high" | "low" };
 
 type Tessera = {
+  mi: number; li: number;
   tx: number; ty: number; sx: number; sy: number; rz: number;
   s: THREE.Vector3; c: THREE.Vector3;
   axis: THREE.Vector3; ang: number;
@@ -82,13 +83,73 @@ function stoneTexture() {
   return t;
 }
 
+/**
+ * Formes de tesselles taillées « à la main » : quadrilatères irréguliers,
+ * trapèzes presque triangulaires, pentagones. Extrudées avec un biseau
+ * (arêtes adoucies, relief), normalisées dans un carré unité.
+ */
+function tesseraShapes(n: number) {
+  const out: THREE.BufferGeometry[] = [];
+  for (let k = 0; k < n; k++) {
+    const kind = k % 5 === 4 ? "penta" : k % 5 === 3 ? "trap" : "quad";
+    let pts: [number, number][];
+    if (kind === "penta") {
+      pts = Array.from({ length: 5 }, (_, i) => {
+        const a = (i / 5) * Math.PI * 2 + rnd() * 0.4;
+        const r = 0.5 + (rnd() - 0.5) * 0.14;
+        return [Math.cos(a) * r, Math.sin(a) * r] as [number, number];
+      });
+    } else if (kind === "trap") {
+      const top = 0.12 + rnd() * 0.3; // côté supérieur très court : presque un triangle
+      pts = [[-0.5, -0.5], [0.5, -0.5 + (rnd() - 0.5) * 0.1], [top / 2 + (rnd() - 0.5) * 0.2, 0.5], [-top / 2 + (rnd() - 0.5) * 0.2, 0.5]];
+    } else {
+      const j = () => (rnd() - 0.5) * 0.24;
+      pts = [[-0.5 + j(), -0.5 + j()], [0.5 + j(), -0.5 + j()], [0.5 + j(), 0.5 + j()], [-0.5 + j(), 0.5 + j()]];
+    }
+    // normalisation dans [-0.5, 0.5] (le biseau est déduit)
+    const xs = pts.map((p) => p[0]);
+    const ys = pts.map((p) => p[1]);
+    const sx = 0.93 / (Math.max(...xs) - Math.min(...xs));
+    const sy = 0.93 / (Math.max(...ys) - Math.min(...ys));
+    const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
+    const cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+    const shape = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2((x - cx) * sx, (y - cy) * sy)));
+    const g = new THREE.ExtrudeGeometry(shape, { depth: 0.22, bevelEnabled: true, bevelThickness: 0.09, bevelSize: 0.06, bevelSegments: 2, curveSegments: 1 });
+    g.translate(0, 0, -0.2);
+    g.computeVertexNormals();
+    out.push(g);
+  }
+  return out;
+}
+
+/** Palette finie de pierres (k-moyennes) : un mosaïste choisit parmi des tesselles taillées */
+function palette(colors: number[][], k: number) {
+  const C = Array.from({ length: k }, (_, i) => [...colors[Math.floor((i / k) * colors.length)]]);
+  const assign = new Array(colors.length).fill(0);
+  for (let it = 0; it < 7; it++) {
+    for (let i = 0; i < colors.length; i++) {
+      let best = 0;
+      let bd = Infinity;
+      for (let j = 0; j < k; j++) {
+        const d = (colors[i][0] - C[j][0]) ** 2 + (colors[i][1] - C[j][1]) ** 2 + (colors[i][2] - C[j][2]) ** 2;
+        if (d < bd) { bd = d; best = j; }
+      }
+      assign[i] = best;
+    }
+    const sum = Array.from({ length: k }, () => [0, 0, 0, 0]);
+    colors.forEach((c, i) => { const s = sum[assign[i]]; s[0] += c[0]; s[1] += c[1]; s[2] += c[2]; s[3]++; });
+    sum.forEach((s, j) => { if (s[3]) C[j] = [s[0] / s[3], s[1] / s[3], s[2] / s[3]]; });
+  }
+  return assign.map((a) => C[a]);
+}
+
 export class Mosaic {
   readonly count: number;
   readonly duration: number;
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
-  private mesh: THREE.InstancedMesh;
+  private meshes: THREE.InstancedMesh[] = [];
   private tess: Tessera[] = [];
   private D: number;
   private key: THREE.DirectionalLight;
@@ -119,6 +180,12 @@ export class Mosaic {
     this.key = new THREE.DirectionalLight(0xfff0dc, 0.9);
     this.key.position.set(-W * 0.6, H * 0.7, this.D * 0.55);
     this.scene.add(this.key);
+    // reflets discrets du marbre poli
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environment = env;
+    this.scene.environmentIntensity = 0.22;
+    this.disposables.push(env, pmrem);
     const rim = new THREE.DirectionalLight(0xbcd0ff, 0.2);
     rim.position.set(W * 0.7, -H * 0.4, this.D * 0.4);
     this.scene.add(rim);
@@ -149,40 +216,70 @@ export class Mosaic {
       return [R / n / 255, G / n / 255, B / n / 255];
     };
 
-    // tailles : fond ≈ 1/110 de la largeur (au moins 9 px), statue deux fois plus fine
-    // budget mesuré sur un portable (≈ 30 ms/image à 11 000 pierres) : on vise ≈ 6 000
-    const coarse = Math.max(high ? 13 : 9, Math.round(Math.max(W, H) / (high ? 100 : 74)));
-    const fine = Math.max(5, Math.round(coarse * 0.55));
-    const cells: { x: number; y: number; s: number; kind: "land" | "sun" | "edge" | "body" | "head" }[] = [];
+    /* ── POSE EN « ANDAMENTO » ─────────────────────────────────────
+     * Comme dans la mosaïque de référence : les rangs de pierres suivent des
+     * courbes. Le fond est posé en anneaux concentriques autour de la statue ;
+     * la statue en pierres fines qui épousent ses contours (opus vermiculatum),
+     * le soleil en pierres rayonnantes. Longueurs, largeurs, formes et angles
+     * varient d'une pierre à l'autre ; les joints restent visibles. */
+    const coarse = Math.max(high ? 14 : 10, Math.round(Math.max(W, H) / (high ? 96 : 70)));
+    const fine = Math.max(4, Math.round(coarse * 0.45));
+    type Cell = { x: number; y: number; L: number; T: number; o: number; kind: "land" | "sun" | "edge" | "body" | "head" };
+    const cells: Cell[] = [];
     const SB = src.statueBox;
     const inFine = (x: number, y: number) => alpha(sm, x, y) > 0.35 || alpha(sn, x, y) > 0.45;
+    const C0 = { x: SB.x + SB.w / 2, y: SB.y + SB.h * 0.42 };
 
-    // opus tessellatum : rangs décalés d'une demi-pierre, comme une pose à la main
-    for (let r = 0, y = coarse / 2; y < H + coarse; r++, y += coarse)
-      for (let x = r % 2 ? 0 : coarse / 2; x < W + coarse; x += coarse) {
-        if (inFine(x, y)) continue;
-        cells.push({ x, y, s: coarse, kind: "land" });
+    // fond : anneaux concentriques autour de la statue
+    const maxR = Math.hypot(Math.max(C0.x, W - C0.x), Math.max(C0.y, H - C0.y)) + coarse;
+    for (let R = coarse * 0.8; R < maxR; R += coarse * (0.86 + rnd() * 0.1)) {
+      let th = rnd() * Math.PI * 2;
+      const end = th + Math.PI * 2 - coarse / R;
+      while (th < end) {
+        const L = coarse * (0.7 + rnd() * 0.75);
+        const d = (L + coarse * 0.07) / R;
+        const a = th + d / 2;
+        th += d;
+        const x = C0.x + Math.cos(a) * R;
+        const y = C0.y + Math.sin(a) * R;
+        if (x < -coarse || x > W + coarse || y < -coarse || y > H + coarse || inFine(x, y)) continue;
+        cells.push({ x, y, L, T: coarse * (0.78 + rnd() * 0.14), o: a + Math.PI / 2, kind: "land" });
       }
-    // opus vermiculatum : la statue et le soleil en pierres fines
-    const fx0 = Math.min(SB.x, src.sunCenter.x - H * 0.2);
-    const fx1 = Math.max(SB.x + SB.w, src.sunCenter.x + H * 0.2);
-    const fy0 = Math.max(0, Math.min(SB.y, src.sunCenter.y - H * 0.2));
-    const fy1 = Math.min(H, SB.y + SB.h);
-    for (let r = 0, y = fy0 + fine / 2; y < fy1 + fine; r++, y += fine)
-      for (let x = fx0 + (r % 2 ? fine / 2 : 0); x < fx1 + fine; x += fine) {
-        const st = alpha(sm, x, y);
-        if (st > 0.35) {
-          const edge = [[-1, 0], [1, 0], [0, -1], [0, 1]].some(([i, j]) => alpha(sm, x + i * fine * 1.5, y + j * fine * 1.5) < 0.35);
-          const head = y < SB.y + SB.h * 0.16;
-          cells.push({ x, y, s: fine, kind: head ? "head" : edge ? "edge" : "body" });
-        } else if (alpha(sn, x, y) > 0.45) cells.push({ x, y, s: fine, kind: "sun" });
+    }
+    // statue : pierres fines alignées sur les contours (normale du masque)
+    const h = fine * 1.6;
+    // la tête est posée encore plus fin : le visage doit rester lisible
+    const headY = SB.y + SB.h * 0.16;
+    for (let y = Math.max(0, SB.y); y < Math.min(H, SB.y + SB.h); ) {
+      const f = y < headY ? fine * 0.72 : fine;
+      for (let x = SB.x; x < SB.x + SB.w; x += f * 0.84) {
+        const jx = x + (rnd() - 0.5) * f * 0.3;
+        const jy = y + (rnd() - 0.5) * f * 0.3;
+        if (alpha(sm, jx, jy) <= 0.35) continue;
+        const gx = alpha(sm, jx + h, jy) - alpha(sm, jx - h, jy);
+        const gy = alpha(sm, jx, jy + h) - alpha(sm, jx, jy - h);
+        const edge = Math.hypot(gx, gy) > 0.25;
+        const o = edge ? Math.atan2(gy, gx) + Math.PI / 2 : (rnd() - 0.5) * 0.5;
+        cells.push({ x: jx, y: jy, L: f * (0.85 + rnd() * 0.35), T: f * (0.82 + rnd() * 0.12), o, kind: jy < headY ? "head" : edge ? "edge" : "body" });
+      }
+      y += f * 0.84;
+    }
+    // soleil : pierres rayonnantes
+    const sr = H * 0.22;
+    for (let y = src.sunCenter.y - sr; y < src.sunCenter.y + sr; y += fine * 0.85)
+      for (let x = src.sunCenter.x - sr; x < src.sunCenter.x + sr; x += fine * 0.85) {
+        const jx = x + (rnd() - 0.5) * fine * 0.3;
+        const jy = y + (rnd() - 0.5) * fine * 0.3;
+        if (alpha(sn, jx, jy) <= 0.45 || alpha(sm, jx, jy) > 0.35) continue;
+        const o = Math.atan2(jy - src.sunCenter.y, jx - src.sunCenter.x);
+        cells.push({ x: jx, y: jy, L: fine * (0.9 + rnd() * 0.5), T: fine * (0.75 + rnd() * 0.15), o, kind: "sun" });
       }
     this.count = cells.length;
 
     /* ── géométrie, matière ── */
-    const geo = new RoundedBoxGeometry(1, 1, 0.42, 1, 0.14); // 1 segment : arêtes adoucies au moindre coût
+    const shapes = tesseraShapes(high ? 10 : 6);
     const tex = stoneTexture();
-    const mat = new THREE.MeshStandardMaterial({ map: tex, bumpMap: tex, bumpScale: 1.6, roughness: 0.58, metalness: 0 });
+    const mat = new THREE.MeshStandardMaterial({ map: tex, bumpMap: tex, bumpScale: 2.2, roughness: 0.46, metalness: 0 });
     // chaque pierre prend un morceau différent de la texture (veines jamais identiques)
     mat.onBeforeCompile = (sh) => {
       sh.vertexShader = sh.vertexShader.replace(
@@ -190,25 +287,32 @@ export class Mosaic {
         `#include <uv_vertex>
         vec2 tOff = fract(vec2(float(gl_InstanceID) * 0.6180339, float(gl_InstanceID) * 0.4142136));
         #ifdef USE_MAP
-          vMapUv = vMapUv * 0.35 + tOff;
+          vMapUv = vMapUv * 0.4 + tOff;
         #endif
         #ifdef USE_BUMPMAP
-          vBumpMapUv = vBumpMapUv * 0.35 + tOff;
+          vBumpMapUv = vBumpMapUv * 0.4 + tOff;
         #endif`,
       );
     };
-    this.disposables.push(geo, tex, mat);
-    this.mesh = new THREE.InstancedMesh(geo, mat, this.count);
-    this.mesh.frustumCulled = false;
-    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.scene.add(this.mesh);
+    this.disposables.push(...shapes, tex, mat);
+    const shapeOf = cells.map(() => Math.floor(rnd() * shapes.length));
+    const counts = shapes.map((_, k) => shapeOf.filter((x) => x === k).length);
+    this.meshes = shapes.map((g, k) => {
+      const m = new THREE.InstancedMesh(g, mat, Math.max(1, counts[k]));
+      m.count = counts[k];
+      m.frustumCulled = false;
+      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      this.scene.add(m);
+      return m;
+    });
+    const localIdx = new Array(shapes.length).fill(0);
 
     /* lit de pose : mortier */
     const bed = new THREE.Mesh(
       new THREE.PlaneGeometry(W * 1.2, H * 1.2),
-      new THREE.MeshStandardMaterial({ color: 0x3a3027, map: tex, roughness: 1 }),
+      new THREE.MeshStandardMaterial({ color: 0x6f6658, map: tex, roughness: 1 }), // joints de mortier clair
     );
-    bed.position.z = -coarse * 0.2;
+    bed.position.z = -fine * 0.25;
     this.scene.add(bed);
     this.disposables.push(bed.geometry, bed.material as THREE.Material);
 
@@ -216,17 +320,21 @@ export class Mosaic {
     const color = new THREE.Color();
     const maxH = Math.max(src.horizon, H - src.horizon);
     let last = 0;
+    // couleurs prélevées sur la scène, puis ramenées à une palette finie de pierres
+    const sampled = cells.map((c) => avg(c.x, c.y, Math.max(c.L, c.T)));
+    const quant = palette(sampled, high ? 40 : 30);
     cells.forEach((cell, i) => {
-      const [r, g, b] = avg(cell.x, cell.y, cell.s);
-      // nuance minérale : légère désaturation + variation propre à chaque pierre
-      const l = 0.299 * r + 0.587 * g + 0.114 * b;
-      const v = (0.94 + rnd() * 0.12) * 1.3; // compense l'ombrage des joints et du relief
-      const sat = cell.kind === "land" ? 0.86 : 0.92;
-      color.setRGB(lerp(l, r, sat) * v, lerp(l, g, sat) * v, lerp(l, b, sat) * v, THREE.SRGBColorSpace);
-      this.mesh.setColorAt(i, color);
+      const [r0, g0, b0] = quant[i];
+      // chaque pierre garde sa propre nuance ; le contour de la statue est souligné d'un rang plus sombre
+      const v = (0.93 + rnd() * 0.14) * 1.28 * (cell.kind === "edge" ? 0.78 : 1);
+      const warm = (rnd() - 0.5) * 0.04;
+      color.setRGB((r0 + warm) * v, g0 * v, (b0 - warm) * v, THREE.SRGBColorSpace);
+      const mi = shapeOf[i];
+      const li = localIdx[mi]++;
+      this.meshes[mi].setColorAt(li, color);
 
-      const tx = cell.x - W / 2 + (rnd() - 0.5) * cell.s * 0.1;
-      const ty = H / 2 - cell.y + (rnd() - 0.5) * cell.s * 0.1;
+      const tx = cell.x - W / 2;
+      const ty = H / 2 - cell.y;
       // départ : derrière le spectateur, réparti autour de l'axe ; quelques pierres frôlent la caméra
       const close = rnd() < 0.06;
       const spread = close ? 0.12 : 0.5 + rnd() * 0.9;
@@ -260,12 +368,12 @@ export class Mosaic {
       }
       delay *= 0.85; // rythme : pose complète en ≈ 5 s
       last = Math.max(last, delay + dur);
-      const k = 0.9 + rnd() * 0.06; // joint fin : la pierre n'occupe pas toute sa case
       this.tess.push({
+        mi, li,
         tx, ty,
-        sx: cell.s * k * (0.94 + rnd() * 0.1),
-        sy: cell.s * k * (0.94 + rnd() * 0.1),
-        rz: (rnd() - 0.5) * 0.12,
+        sx: cell.L,
+        sy: cell.T,
+        rz: -cell.o + (rnd() - 0.5) * 0.16, // orientation du rang (repère écran → monde : y inversé)
         s, c,
         axis: new THREE.Vector3(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize(),
         ang: 2 + rnd() * 4,
@@ -273,7 +381,7 @@ export class Mosaic {
         done: false,
       });
     });
-    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    this.meshes.forEach((m) => m.instanceColor && (m.instanceColor.needsUpdate = true));
     // pose terminée, puis lumière rasante, caméra qui se règle, révélation de l'image
     this.duration = last;
     this.update(0);
@@ -298,9 +406,9 @@ export class Mosaic {
       const thick = Math.min(T.sx, T.sy);
       sc.set(T.sx, T.sy, thick);
       m.compose(p, q, sc);
-      this.mesh.setMatrixAt(i, m);
+      this.meshes[T.mi].setMatrixAt(T.li, m);
     }
-    this.mesh.instanceMatrix.needsUpdate = true;
+    for (const mm of this.meshes) mm.instanceMatrix.needsUpdate = true;
   }
 
   /** Caméra et lumière (réglage final, balayage rasant) */
@@ -317,7 +425,7 @@ export class Mosaic {
 
   dispose() {
     this.disposables.forEach((d) => d.dispose());
-    this.mesh.dispose();
+    this.meshes.forEach((m) => m.dispose());
     this.renderer.dispose();
     this.renderer.forceContextLoss();
   }

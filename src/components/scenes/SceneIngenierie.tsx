@@ -3,6 +3,7 @@ import type { Scene } from "@/content/scenes";
 import { StarField } from "@/components/scene-kit/StarField";
 import { ChapterOpener } from "@/components/scene-kit/ChapterOpener";
 import { SceneDecor } from "@/components/scene-kit/SceneLayer";
+import { Frieze } from "@/components/scene-kit/Frieze";
 import { Folios } from "@/components/scene-kit/Editorial";
 
 /**
@@ -43,6 +44,7 @@ export function SceneIngenierie({ scene }: { scene: Scene }) {
           <Image src="/scenes/ingenierie/nuit-ciel-nebuleuse.webp" alt="" fill sizes="100vw" className="night-sky__nebula" />
           <StarField density={0.00012} />
         </div>
+        <Frieze />
         <SceneDecor items={scene.decor} />
 
         <div className="engine">

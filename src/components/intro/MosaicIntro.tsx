@@ -151,7 +151,7 @@ export function MosaicIntro() {
         const M = mosaic;
         const D = M.duration;
         const prog = { t: 0, cam: 0, light: 0 };
-        const R = D + 0.5; // la pose est finie : la révélation commence
+        const R = D + 1.3; // la pose est finie : on laisse admirer la pierre, puis la révélation commence
         tl = gsap.timeline({ paused: true, onComplete: finish });
         tl.to(prog, { t: D + 0.1, duration: D + 0.1, ease: "none", onUpdate: () => M.update(prog.t) }, 0)
           .to(rays, { autoAlpha: 0, duration: 1.2, ease: "sine.in" }, 0.3)
@@ -162,7 +162,7 @@ export function MosaicIntro() {
             gsap.set([...chrome, ...q(".hero__word .ch"), ...q(".hero__kicker"), ...q(".hero__notes"), ...q(".hero__cue")], { autoAlpha: 0 });
             root.dataset.intro = "reveal";
           }, [], R)
-          .to(canvas, { autoAlpha: 0, duration: 2, ease: "sine.inOut" }, R + 0.1)
+          .to(canvas, { autoAlpha: 0, duration: 2.6, ease: "sine.inOut" }, R + 0.1)
           .fromTo(q(".hero__word .ch"), { yPercent: 110, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 1.3, stagger: 0.06, ease: "power3.out" }, R + 0.5)
           .to(q(".hero__kicker"), { autoAlpha: 1, duration: 0.9 }, R + 1.0)
           .to([...chrome, ...q(".hero__notes"), ...q(".hero__cue")], { autoAlpha: 1, duration: 0.9, stagger: 0.06 }, R + 1.3);

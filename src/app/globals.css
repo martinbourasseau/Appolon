@@ -2342,37 +2342,117 @@ html[data-motion="reduced"] .opener__lead {
   top: 36svh;
 }
 
-/* ═══ IV : nuage de mots en profondeur ═══ */
+/* ═══ IV : nuage de mots vivant (outils et gestes du métier) ═══ */
 .wordcloud {
   position: relative;
   margin: 4rem calc(50% - 50vw) 2rem;
-  overflow: visible;
+}
+.wordcloud__slot {
+  position: absolute;
 }
 .wordcloud__w {
-  position: absolute;
-  white-space: nowrap;
+  position: relative;
+  display: inline-block;
+  padding: 0.18em 0.4em;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  font: inherit;
   font-family: var(--serif);
   font-style: italic;
   font-weight: 400;
-  line-height: 1;
   font-size: var(--fs, 1.4rem);
+  line-height: 1;
+  white-space: nowrap;
   color: var(--encre);
+  text-align: left;
+  cursor: pointer;
+  transform-origin: 0 50%;
+  transition:
+    transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 0.35s ease,
+    color 0.35s ease,
+    box-shadow 0.45s ease,
+    opacity 0.45s ease;
 }
-.wordcloud__w.is-craft i {
-  display: none;
+.wordcloud__in {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  will-change: transform;
+}
+.wordcloud__label i {
+  margin-right: 0.08em;
+  font-style: normal;
+  color: var(--or);
+  transition: color 0.35s;
 }
 .wordcloud__w.is-craft {
   font-style: normal;
   color: var(--encre-2);
 }
-.wordcloud__w i {
-  margin-right: 0.08em;
-  font-style: normal;
-  color: var(--or);
-}
 .wordcloud__w.is-faint {
   color: var(--encre-2);
-  opacity: 0.6;
+}
+/* le mot choisi devient une carte d'encre */
+.wordcloud__w.is-active {
+  z-index: 5;
+  color: #fbf3e4;
+  background: var(--encre);
+  transform: scale(1.14);
+  box-shadow: 0 22px 44px -18px rgba(29, 26, 21, 0.55), 0 0 0 1px rgba(169, 124, 50, 0.4);
+}
+.wordcloud__w.is-active .wordcloud__label i {
+  color: var(--or-clair);
+}
+.wordcloud.has-active .wordcloud__w:not(.is-active) {
+  opacity: 0.42;
+}
+.wordcloud__detail {
+  display: block;
+  max-width: 24ch;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 500;
+  font-size: max(0.78rem, calc(var(--fs, 1.4rem) * 0.28));
+  line-height: 1.4;
+  white-space: normal;
+  color: rgba(251, 243, 228, 0.86);
+  transition: max-height 0.45s ease, opacity 0.35s ease 0.08s, margin 0.45s ease;
+}
+.wordcloud__w.is-active .wordcloud__detail {
+  max-height: 6em;
+  margin-top: 0.55em;
+  opacity: 1;
+}
+.wordcloud__sun {
+  position: absolute;
+  top: -0.9rem;
+  right: -1.1rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  fill: none;
+  stroke: var(--or);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0;
+  transform: scale(0.3) rotate(-60deg);
+  transition: transform 0.6s cubic-bezier(0.2, 1.4, 0.3, 1), opacity 0.3s;
+  pointer-events: none;
+}
+.wordcloud__sun circle {
+  fill: var(--or-clair);
+}
+.wordcloud__w.is-active .wordcloud__sun {
+  opacity: 1;
+  transform: none;
+}
+.wordcloud__w:focus-visible {
+  outline: 2px solid var(--or);
+  outline-offset: 4px;
 }
 @media (max-width: 768px) {
   .wordcloud {
@@ -2380,16 +2460,27 @@ html[data-motion="reduced"] .opener__lead {
     flex-wrap: wrap;
     justify-content: center;
     align-items: baseline;
-    gap: 0.6rem 1.1rem;
+    gap: 0.5rem 0.9rem;
     height: auto !important;
     margin-inline: 0;
     padding: 2rem 0;
   }
-  .wordcloud__w {
+  .wordcloud__slot {
     position: relative;
     left: auto !important;
     top: auto !important;
+  }
+  .wordcloud__w {
     font-size: calc(var(--fs, 1.4rem) * 0.62);
+  }
+  .wordcloud__w.is-active {
+    transform: scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wordcloud__w,
+  .wordcloud__sun {
+    transition: none;
   }
 }
 
@@ -2411,4 +2502,104 @@ html[data-motion="reduced"] .opener__lead {
 .desk__kicker {
   color: #fbf3e4 !important;
   text-shadow: 0 1px 8px rgba(20, 14, 8, 0.6);
+}
+
+/* ═══ ATTENTES À L'ANTIQUE ═══ */
+.greek-loader {
+  display: inline-grid;
+  justify-items: center;
+  gap: 0.7rem;
+  color: var(--or);
+}
+.greek-loader--clair {
+  color: var(--or-clair);
+}
+.greek-loader svg {
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: square;
+}
+.greek-loader__ring {
+  stroke-width: 0.6;
+  opacity: 0.45;
+  stroke-dasharray: 1;
+  animation: gk-draw 2.4s cubic-bezier(0.6, 0, 0.3, 1) infinite;
+}
+.greek-loader__key {
+  stroke-width: 1.4;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: gk-key 2.4s ease-in-out infinite;
+}
+.greek-loader__sun {
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  transform-origin: 50px 50px;
+  animation: gk-sun 6s linear infinite;
+}
+.greek-loader__sun circle {
+  fill: currentColor;
+  fill-opacity: 0.35;
+}
+.greek-loader__tess {
+  fill: currentColor;
+  stroke: none;
+  opacity: 0;
+  animation: gk-tess 2.4s ease-out infinite;
+}
+.greek-loader__label {
+  font: 500 0.78rem/1 var(--sans);
+  letter-spacing: 0.08em;
+}
+@keyframes gk-draw {
+  0% { stroke-dashoffset: 1; }
+  60%, 100% { stroke-dashoffset: 0; }
+}
+@keyframes gk-key {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  45% { stroke-dashoffset: 0; opacity: 1; }
+  85%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes gk-sun {
+  to { transform: rotate(360deg); }
+}
+@keyframes gk-tess {
+  0% { opacity: 0; transform: translateY(-6px) scale(1.6); }
+  25%, 70% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .greek-loader__ring,
+  .greek-loader__key,
+  .greek-loader__sun,
+  .greek-loader__tess {
+    animation: none;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* frise gravée en tête de chapitre */
+.frieze {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 72rem);
+  height: 14px;
+  margin: 0 auto 2.5rem;
+  color: var(--or);
+  opacity: 0.75;
+}
+.scene--nuit .frieze {
+  color: var(--or-clair);
+  opacity: 0.55;
+}
+.frieze svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: square;
 }
